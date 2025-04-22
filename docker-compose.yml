@@ -2,7 +2,7 @@ services:
   ml-detector-app:
     container_name: pfnd-ml-detector-app
     build:
-      context: ./pfnd-ml-detector-app
+      context: ./ml-evaluation-app
       dockerfile: Dockerfile
     environment:
         ENV: "dev"
@@ -10,6 +10,31 @@ services:
       - "8000:8000"
     volumes:
       - pfnd2025_data:/ml-detector-app
+
+  rabbitmq:
+    container_name: pfnd-rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - pfnd2025_data:/rabbitmq
+
+  nginx:
+    image: nginx:latest
+    container_name: pfnd-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - pfnd2025_data:/var/www/html
+      - pfnd2025_data:/var/log/nginx
+    depends_on:
+      - ml-detector-app
 
 volumes:
   pfnd2025_data:
