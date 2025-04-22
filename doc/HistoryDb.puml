@@ -1,0 +1,31 @@
+@startuml
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <b>x</b>
+
+entity "EvaluationHistory" as history {
+  primary_key(id): UUID
+  user_id: UUID
+  input_text: text
+  explanation: string
+  score: float
+  sources: string
+  created_at: datetime
+}
+
+entity "Evaluation_sources" as ev_src {
+  primary_key(id): UUID
+  evaluation_id: UUID
+  scraped_source_id: UUID
+}
+
+entity "ScrapedSources" as sources {
+  primary_key(id): UUID
+  url: string
+  content: text
+  source_name: string
+  last_updated: datetime
+}
+
+history ||--o{ ev_src
+sources ||--o{ ev_src
+@enduml

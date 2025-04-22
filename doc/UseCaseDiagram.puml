@@ -1,0 +1,48 @@
+@startuml
+left to right direction
+skinparam defaultTextAlignment center
+skinparam packageStyle rectangle
+
+actor "Użytkownik\n niezalogowany" as Guest
+actor "Użytkownik\n zalogowany" as LoggedInUser
+actor "Użytkownik\n API" as ApiUser
+
+rectangle "Polish Fake News Detector" {
+    usecase "Przeglądaj historię" as UCHistory
+    usecase "Sprawdź prawdziwość\ntreści" as UCCheck
+    usecase "Sprawdź stan\nprzetwarzania" as UCState
+    usecase "Sprawdź źródła\noceny" as UCSources
+    usecase "Podaj treść do sprawdzenia" as UCCheckInput
+    usecase "Wykup subskrypcję" as UCSubscribe
+    usecase UCSaveHistory as "Zapisz treść w historii"
+    usecase "Zarządzaj historią użytkownika" as UCManageHistory
+    usecase  UCFactDB as "Pobierz treści z baz\nfact-checkingowych
+    --
+    Zgodnie z harmonogramem"
+    usecase "Zaloguj się / Zarejestruj się" as UCLogin
+    usecase "Sprawdź zużycie" as UCCheckUsage
+
+}
+
+
+actor FactCheckingDB <<system>> as "Bazy fact-checkingowe"
+
+LoggedInUser -- UCCheckInput
+UCCheckInput --> (UCCheck): <<include>>
+LoggedInUser -- UCHistory
+ApiUser -- UCCheck
+
+UCCheck <-- (UCState): <<extends>>
+UCCheck <-- (UCSources): <<extends>>
+UCCheck <-- UCSaveHistory: <<extends>>
+
+
+Guest -- UCLogin
+LoggedInUser -- UCSubscribe
+LoggedInUser -- UCManageHistory
+LoggedInUser -- UCCheckUsage
+
+FactCheckingDB -- UCFactDB
+UCCheckUsage -- ApiUser
+
+@enduml
