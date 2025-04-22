@@ -1,0 +1,15 @@
+services:
+  ml-detector-app:
+    container_name: pfnd-ml-detector-app
+    build:
+      context: ./pfnd-ml-detector-app
+      dockerfile: Dockerfile
+    environment:
+        ENV: "dev"
+    ports:
+      - "8000:8000"
+    volumes:
+      - pfnd2025_data:/ml-detector-app
+
+volumes:
+  pfnd2025_data:
