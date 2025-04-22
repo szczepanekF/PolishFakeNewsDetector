@@ -5,7 +5,7 @@ services:
       context: ./ml-evaluation-app
       dockerfile: Dockerfile
     environment:
-        ENV: "dev"
+      ENV: "dev"
     ports:
       - "8000:8000"
     volumes:
@@ -35,6 +35,20 @@ services:
       - pfnd2025_data:/var/log/nginx
     depends_on:
       - ml-detector-app
+      - webapp
+
+  webapp:
+    container_name: pfnd-webapp
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    volumes:
+      - pfnd2025_data:/webapp/build # Output build files to shared volume
+    depends_on:
+      - ml-detector-app
+      # add backend here
+      # - business-logic
+      # - auth
 
 volumes:
   pfnd2025_data:
