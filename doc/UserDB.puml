@@ -1,38 +1,39 @@
 @startuml
 !define table(x) class x << (T,#FFAAAA) >>
 !define primary_key(x) <b>x</b>
+rectangle "User DB" {
+    entity "Users" as users {
+      primary_key(id): UUID
+      email: string
+      password_hash: string
+      created_at: datetime
+      modified_at: datetime
+      is_active: boolean
+    }
 
-entity "Users" as users {
-  primary_key(id): UUID
-  email: string
-  password_hash: string
-  created_at: datetime
-  modified_at: datetime
-  is_active: boolean
+    entity "Subscriptions" as subs {
+      primary_key(id): UUID
+      user_id: UUID
+      start_date: datetime
+      expiration_date: datetime
+      subscription_type: string
+      pfnd_api_key: string
+    }
+
+    entity "Payments" as payment {
+      primary_key(id): UUID
+      method: string
+      currency: string
+      value: float
+      start_date: datetime
+      expiration_date: datetime
+      status: string
+      subscription_id: UUID
+      payment_api_key: string
+    }
+
+    users ||--o{ subs
+    subs ||--|{ payment
 }
-
-entity "Subscriptions" as subs {
-  primary_key(id): UUID
-  user_id: UUID
-  start_date: datetime
-  expiration_date: datetime
-  subscription_type: string
-  pfnd_api_key: string
-}
-
-entity "Payments" as payment {
-  primary_key(id): UUID
-  method: string
-  currency: string
-  value: float
-  start_date: datetime
-  expiration_date: datetime
-  status: string
-  subscription_id: UUID
-  payment_api_key: string
-}
-
-users ||--o{ subs
-subs ||--|{ payment
 
 @enduml
