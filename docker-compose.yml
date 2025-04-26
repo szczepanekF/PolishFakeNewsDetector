@@ -24,7 +24,7 @@ services:
       - pfnd2025_data:/rabbitmq
 
   nginx:
-    image: nginx:latest
+    image: nginx:stable-alpine
     container_name: pfnd-nginx
     ports:
       - "80:80"
@@ -46,9 +46,66 @@ services:
       - pfnd2025_data:/webapp/build # Output build files to shared volume
     depends_on:
       - ml-detector-app
-      # add backend here
-      # - business-logic
-      # - auth
+      - business-logic
+      - auth
+  auth:
+    container_name: pfnd-auth
+    build:
+      context: ./UserService
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      USERS_DB_URL: jdbc:postgresql://userdb:5432/${USERS_DB_NAME}
+      LOGSTASH_URL: logstash:5000
+    depends_on:
+      - userdb
+      - logstash
+    volumes:
+      - pfnd2025_data:/auth
+
+  userdb:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USERS_DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - userdb_data:/data/db
+
+  business-logic:
+    container_name: pfnd-business-logic
+    build:
+      context: ./BusinessLogicService
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      HISTORY_DB_URL: jdbc:postgresql://historydb:5432/${HISTORY_DB_NAME}
+      LOGSTASH_URL: logstash:5000
+    depends_on:
+      - historydb
+      - logstash
+    volumes:
+      - pfnd2025_data:/business-logic
+
+  historydb:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${HISTORY_DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - historydb_data:/data/db
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
     environment:
@@ -80,5 +137,6 @@ services:
 
 volumes:
   pfnd2025_data:
-
+  userdb_data:
+  historydb_data:
   elasticsearch_data:
