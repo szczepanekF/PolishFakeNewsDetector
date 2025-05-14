@@ -6,11 +6,18 @@ authors = ["Igor Bobrukiewicz <igor.bobrukiewicz@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.13"
 pandas = "^2.2.3"
-fastapi = "^0.115.12"
 uvicorn = "^0.34.2"
 pydantic-settings = "^2.9.1"
+spacy = "^3.8.5"
+transformers = "^4.51.3"
+torch = "^2.7.0"
+bs4 = "^0.0.2"
+celery = "^5.5.2"
+flower = "^2.0.1"
+fastapi = "^0.115.12"
+redis = "^6.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.3.0"

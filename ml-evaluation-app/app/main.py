@@ -11,6 +11,7 @@ from app.core.log import get_logger
 logger = get_logger(__name__)
 app = FastAPI()
 
+
 @app.exception_handler(Exception)
 async def exception_handler(request: Request, exc: Exception):
     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -27,6 +28,7 @@ async def exception_handler(request: Request, exc: Exception):
 
 
 app.include_router(api_router, prefix="/api/v1")
+
 
 @app.get("/health")
 async def health_check():

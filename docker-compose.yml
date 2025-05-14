@@ -1,16 +1,4 @@
 services:
-  ml-detector-app:
-    container_name: pfnd-ml-detector-app
-    build:
-      context: ./ml-evaluation-app
-      dockerfile: Dockerfile
-    environment:
-      ENV: "dev"
-    ports:
-      - "8000:8000"
-    volumes:
-      - pfnd2025_data:/ml-detector-app
-
   rabbitmq:
     container_name: pfnd-rabbitmq
     image: rabbitmq:3-management
@@ -23,6 +11,62 @@ services:
     volumes:
       - pfnd2025_data:/rabbitmq
 
+  redis:
+    image: redis:7
+
+  ml-evaluation-api:
+    container_name: ml-evaluation-api
+    build:
+      context: ./ml-evaluation-app
+      dockerfile: Dockerfile_API
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - redis
+    environment:
+      - ENV=dev
+      - BROKER_URI=amqp://user:password@rabbitmq:5672//
+    volumes:
+      - pfnd2025_data:/ml-evaluation-app
+
+  ml-evaluation-worker-1:
+    container_name: ml-evaluation-worker-1
+    build:
+      context: ./ml-evaluation-app
+      dockerfile: Dockerfile_Worker
+    environment:
+      - ENV=dev
+      - BROKER_URI=amqp://user:password@rabbitmq:5672//
+      - HOSTNAME_PREFIX=worker1
+    depends_on:
+      - rabbitmq
+    volumes:
+      - pfnd2025_data:/ml-evaluation-app
+
+  ml-evaluation-worker-2:
+    container_name: ml-evaluation-worker-2
+    build:
+      context: ./ml-evaluation-app
+      dockerfile: Dockerfile_Worker
+    environment:
+      - ENV=dev
+      - BROKER_URI=amqp://user:password@rabbitmq:5672//
+      - HOSTNAME_PREFIX=worker2
+    depends_on:
+      - rabbitmq
+    volumes:
+      - pfnd2025_data:/ml-evaluation-app
+
+  flower:
+    image: mher/flower
+    container_name: flower
+    command: celery --broker=amqp://user:password@rabbitmq:5672// flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - rabbitmq
+
   nginx:
     image: nginx:stable-alpine
     container_name: pfnd-nginx
@@ -34,7 +78,6 @@ services:
       - pfnd2025_data:/var/www/html
       - pfnd2025_data:/var/log/nginx
     depends_on:
-      - ml-detector-app
       - webapp
 
   webapp:
@@ -45,7 +88,6 @@ services:
     volumes:
       - pfnd2025_data:/webapp/build # Output build files to shared volume
     depends_on:
-      - ml-detector-app
       - business-logic
       - auth
   auth:
@@ -128,8 +170,8 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:9.0.0
     ports:
-      - "5000:5000/tcp"
-      - "5000:5000/udp"
+      - "5005:5000/tcp"
+      - "5005:5000/udp"
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     depends_on:
