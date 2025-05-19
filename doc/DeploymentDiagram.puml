@@ -1,0 +1,29 @@
+@startuml
+
+
+node "Serwer aplikacyjny" {
+  node "AI module" {
+    [<<component>>\nScrapperService] as ScrapperService
+    [<<component>>\nEvaluationService] as EvaluationService
+  }
+  component "<<component>>\nBusinessLogicService" as BusinessLogicService
+  [<<component>>\nHistoryDb] as HistoryDb
+  [<<component>>\nUserService] as UserService
+  [<<component>>\nUsersDb] as UsersDb
+}
+node "<<device>>\nUrządzenie mobilne" as Mobile
+node "<<device>>\nKomputer" as PC
+node "Load balancer" as LB
+"Serwer aplikacyjny" -down- LB
+Mobile -left- [Aplikacja webowa]
+PC -left- [Wtyczka przeglądarkowa]
+PC -- [Aplikacja webowa]
+[Aplikacja webowa] -left- LB
+[Wtyczka przeglądarkowa] -left- LB
+[BusinessLogicService] -- [ScrapperService]
+[BusinessLogicService] -- [EvaluationService]
+[BusinessLogicService] -- [HistoryDb]
+
+[UserService] -- [UsersDb]
+
+@enduml

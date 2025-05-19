@@ -1,0 +1,35 @@
+@startuml
+skinparam style strictuml
+left to right direction
+actor User
+actor Admin
+rectangle "API Gateway" {
+  [User Service]
+  [Business Logic Service]
+}
+
+rectangle "AI Module" {
+[Evaluation service] as AI
+[Scrapper service] as SC
+}
+database "Fact-checking DB" as DB1
+database "History DB" as DB3
+database "User DB" as DB2
+
+User --> [User Service] : login/register
+[User Service] --> DB2 : authenticate user
+
+[User Service] --> DB2 : fetch user data
+User --> [User Service] : subscribe
+User --> [Business Logic Service] : submit text
+[Business Logic Service] --> AI : send text for analysis
+AI -left-> [Business Logic Service] : classification result
+
+[Business Logic Service] --> DB1 : fetch verification links
+[Business Logic Service] --> DB1 : store scrapped source
+User --> [Business Logic Service] : view history
+[Business Logic Service] --> DB3 : retrieve user history
+[Business Logic Service] --> DB3 : store result
+Admin --> [User Service] : manage users
+[Business Logic Service] --> SC : scrap verification source
+@enduml

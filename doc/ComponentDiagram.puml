@@ -1,9 +1,7 @@
 @startuml
-' Set direction
 
 skinparam defaultTextAlignment center
 skinparam linetype ortho
-
 package "Frontend" {
     [Web App]
     [Chrome addon]
@@ -16,40 +14,29 @@ package "Backend" {
     node "Services" {
     [User Service]
     [Business Logic Service]
-
     package "AI Module" {
     [Scraper Service]
     [Evaluation Service]
     }
-
 }
     database "Users DB" as usersdb
     database "History DB" as histdb
-
 }
-
-
 package "Monitoring" {
     node "ELK" {
         [Logstash]
         [Kibana]
-
         [Elasticsearch]
     }
 }
-
-
 [Web App] -down-> [API Gateway]
 [Chrome addon] -down-> [API Gateway]
-[API Gateway] -down-> [User Service]
-[API Gateway] -down-> [Scraper Service]
 [API Gateway] -down-> [Business Logic Service]
-[API Gateway] -down-> [Evaluation Service]
-
+[API Gateway] -down-> [User Service]
 "Backend" ->"Monitoring"
 [User Service] -down-> usersdb
 [Business Logic Service] -down-> histdb
-
-"Services" --> "Messaging"
-"Messaging" --> "Services"
+[Business Logic Service] -right-> "AI Module"
+"AI Module" --> "Messaging"
+"Messaging" --> "AI Module"
 @enduml

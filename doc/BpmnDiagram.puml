@@ -1,0 +1,25 @@
+@startuml
+skinparam style strictuml
+|User|
+start
+:logs in;
+:submits text\nto verification;
+|API Gateway|
+:receive request;
+:route to Business Logic Service;
+|Business Logic Service|
+:validate input;
+:save in user history;
+:send to evaluation;
+|Evaluation Service|
+:evaluate content;
+:return result;
+|Business Logic Service|
+:fetch fact-check links;
+:store result;
+:send response;
+|User|
+:views result;
+:accesses history;
+stop
+@enduml
