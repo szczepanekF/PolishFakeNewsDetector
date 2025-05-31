@@ -1,0 +1,116 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+interface AuthenticationService << interface >> {
+  + registerUser(RegisterUserDto): AuthenticationResponse
+  + loginUser(LoginUserDto): AuthenticationResponse
+  + loginWithGoogle(User): String
+}
+class AuthenticationServiceImpl {
+  - isEmailOrUsernameJustExist(String): boolean
+  - createAuthenticationResponse(User): AuthenticationResponse
+  + registerUser(RegisterUserDto): AuthenticationResponse
+  + loginUser(LoginUserDto): AuthenticationResponse
+  - createUser(RegisterUserDto): User
+  + loginWithGoogle(User): String
+  - getUserClaims(User): Map<String, Object>
+}
+interface JwtService << interface >> {
+  + extractUsername(String): String
+  + generateToken(Map<String, Object>, UserDetails): String
+  + validateToken(String, UserDetails): boolean
+}
+class JwtServiceImpl {
+  - extractClaim(String, Function<Claims, T>): T
+  - isTokenExpired(String): boolean
+  - extractAllClaims(String): Claims
+  + validateToken(String, UserDetails): boolean
+  + extractUsername(String): String
+  - extractExpiration(String): Date
+  + generateToken(Map<String, Object>, UserDetails): String
+}
+class PaymentController {
+  + confirmPayment(PaymentConfirmationDto): ResponseEntity<Response<?>>
+  + getPaymentStatus(String): ResponseEntity<Response<?>>
+  + getUserPaymentHistory(String): ResponseEntity<Response<?>>
+  + reundPayment(String): ResponseEntity<Response<?>>
+  + initiatePayment(PaymentRequestDto): ResponseEntity<Response<?>>
+}
+interface PaymentRepository << interface >>
+interface PaymentService << interface >> {
+  + confirmPayment(PaymentConfirmationDto): void
+  + initiatePayment(PaymentRequestDto): String
+  + getPaymentHistory(UUID): List<Payment>
+  + refundPayment(UUID): void
+  + getStatus(String): PaymentStatusDto
+}
+class PaymentServiceImpl {
+  + getPaymentHistory(UUID): List<Payment>
+  + confirmPayment(PaymentConfirmationDto): void
+  + initiatePayment(PaymentRequestDto): String
+  + refundPayment(UUID): void
+  + getStatus(String): PaymentStatusDto
+}
+class SubscriptionController {
+  + getPlanDetails(String): ResponseEntity<Response<?>>
+  + cancelSubscription(String): ResponseEntity<Response<?>>
+  + getSubscriptionStatus(String): ResponseEntity<Response<?>>
+  + listAllPlans(): ResponseEntity<Response<?>>
+  + subscribe(SubscriptionRequestDto): ResponseEntity<Response<?>>
+}
+interface SubscriptionRepository << interface >>
+interface SubscriptionService << interface >> {
+  + getSubscriptionStatus(String): SubscriptionStatusDto
+  + cancelSubscription(String): void
+  + getAllPlans(): List<SubscriptionPlanDto>
+  + subscribe(String, String): Subscription
+  + getPlanDetails(String): SubscriptionPlanDto
+}
+class SubscriptionServiceImpl {
+  + getSubscriptionStatus(String): SubscriptionStatusDto
+  + getPlanDetails(String): SubscriptionPlanDto
+  + subscribe(String, String): Subscription
+  + getAllPlans(): List<SubscriptionPlanDto>
+  + cancelSubscription(String): void
+}
+class UserController {
+  + login(LoginUserDto): ResponseEntity<Response<?>>
+  + getUserDetailsByEmailOrUsername(String): ResponseEntity<Response<?>>
+  + register(RegisterUserDto): ResponseEntity<Response<?>>
+  + getAllUsers(): ResponseEntity<Response<?>>
+  + updateUser(String): ResponseEntity<Response<?>>
+}
+interface UserRepository << interface >> {
+  + findByEmail(String): Optional<User>
+  + findByUsername(String): Optional<User>
+  + retrieveAll(): List<User>
+  + findByUsernameOrEmail(String, String): Optional<User>
+}
+interface UserService << interface >> {
+  + createUser(): AuthenticationResponse
+  + getUserByEmailOrUsername(String): User
+}
+class UserServiceImpl {
+  + createUser(): AuthenticationResponse
+  + getUserByEmailOrUsername(String): User
+}
+
+AuthenticationServiceImpl  -[#008200,dashed]-^  AuthenticationService
+AuthenticationServiceImpl "1" *-[#595959,plain]-> "jwtService\n1" JwtService
+AuthenticationServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+JwtServiceImpl             -[#008200,dashed]-^  JwtService
+PaymentController         "1" *-[#595959,plain]-> "paymentService\n1" PaymentService
+PaymentServiceImpl        "1" *-[#595959,plain]-> "paymentRepository\n1" PaymentRepository
+PaymentServiceImpl         -[#008200,dashed]-^  PaymentService
+SubscriptionController    "1" *-[#595959,plain]-> "subscriptionService\n1" SubscriptionService
+SubscriptionServiceImpl   "1" *-[#595959,plain]-> "subscriptionRepository\n1" SubscriptionRepository
+SubscriptionServiceImpl    -[#008200,dashed]-^  SubscriptionService
+UserController            "1" *-[#595959,plain]-> "authenticationService\n1" AuthenticationService
+UserController            "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+UserController            "1" *-[#595959,plain]-> "userService\n1" UserService
+UserServiceImpl           "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+UserServiceImpl            -[#008200,dashed]-^  UserService
+@enduml

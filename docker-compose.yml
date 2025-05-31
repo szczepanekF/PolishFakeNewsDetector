@@ -102,9 +102,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       USERS_DB_URL: jdbc:postgresql://userdb:5432/${USERS_DB_NAME}
       LOGSTASH_URL: logstash:5000
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
     depends_on:
       - userdb
-      - logstash
+      # - logstash
     volumes:
       - pfnd2025_data:/auth
 

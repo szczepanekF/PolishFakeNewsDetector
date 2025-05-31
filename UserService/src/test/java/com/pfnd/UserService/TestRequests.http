@@ -1,0 +1,10 @@
+POST http://localhost:8080/app/user/login
+Content-Type: application/json
+
+{
+  "email": "242544@edu.p.lodz.pl",
+  "password": "test"
+}
+
+###
+GET http://localhost:8080/app/user
