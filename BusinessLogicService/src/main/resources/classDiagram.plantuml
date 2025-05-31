@@ -1,0 +1,44 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class BusinessLogicController {
+  + getUserHistory(String): ResponseEntity<Response<?>>
+  + submitTextForEvaluation(FactCheckRequestDto): ResponseEntity<Response<?>>
+  + getResult(UUID): ResponseEntity<Response<?>>
+  + getStatus(UUID): ResponseEntity<Response<?>>
+}
+interface BusinessLogicService << interface >> {
+  + initiateFactCheck(FactCheckRequestDto): UUID
+  + getUserHistory(String): List<FactCheckResultDto>
+  + getEvaluationStatus(UUID): EvaluationStatusDto
+  + getEvaluationResult(UUID): FactCheckResultDto
+}
+class BusinessLogicServiceImpl {
+  + getEvaluationStatus(UUID): EvaluationStatusDto
+  + initiateFactCheck(FactCheckRequestDto): UUID
+  + getEvaluationResult(UUID): FactCheckResultDto
+  + getUserHistory(String): List<FactCheckResultDto>
+}
+interface EvalutationHistoryRepository << interface >> {
+  + findByUserId(String): List<EvaluationHistoryRecord>
+}
+interface FactCheckRequestHandler << interface >> {
+  + sendToScraper(FactCheckCommand): void
+  + sendToEvaluator(ScrapedContent): void
+}
+class FactCheckRequestHandlerImpl {
+  + sendToScraper(FactCheckCommand): void
+  + sendToEvaluator(ScrapedContent): void
+}
+interface ScrapedSourcesRepository << interface >>
+
+BusinessLogicController      "1" *-[#595959,plain]-> "businessLogicService\n1" BusinessLogicService         
+BusinessLogicServiceImpl      -[#008200,dashed]-^  BusinessLogicService         
+BusinessLogicServiceImpl     "1" *-[#595959,plain]-> "evalutationHistoryRepository\n1" EvalutationHistoryRepository 
+BusinessLogicServiceImpl     "1" *-[#595959,plain]-> "factCheckRequestHandler\n1" FactCheckRequestHandler      
+BusinessLogicServiceImpl     "1" *-[#595959,plain]-> "scrapedSourcesRepository\n1" ScrapedSourcesRepository     
+FactCheckRequestHandlerImpl   -[#008200,dashed]-^  FactCheckRequestHandler      
+@enduml

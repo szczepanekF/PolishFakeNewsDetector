@@ -135,7 +135,7 @@ services:
       LOGSTASH_URL: logstash:5000
     depends_on:
       - historydb
-      - logstash
+        #      - logstash
     volumes:
       - pfnd2025_data:/business-logic
 

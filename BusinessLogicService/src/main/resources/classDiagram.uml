@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.pfnd.BusinessLogicService.controller</OriginalElement>
+  <nodes>
+    <node x="60.20093457943926" y="143.80373831775702">com.pfnd.BusinessLogicService.repository.ScrapedSourcesRepository</node>
+    <node x="356.5" y="129.0">com.pfnd.BusinessLogicService.repository.EvalutationHistoryRepository</node>
+    <node x="-225.0" y="413.0">com.pfnd.BusinessLogicService.controller.BusinessLogicController</node>
+    <node x="338.3831775700935" y="234.48598130841123">com.pfnd.BusinessLogicService.service.impl.BusinessLogicServiceImpl</node>
+    <node x="743.5" y="356.7710280373832">com.pfnd.BusinessLogicService.service.impl.FactCheckRequestHandlerImpl</node>
+    <node x="665.75" y="-14.0">com.pfnd.BusinessLogicService.service.FactCheckRequestHandler</node>
+    <node x="-163.32242990654208" y="224.9018691588785">com.pfnd.BusinessLogicService.service.BusinessLogicService</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.pfnd.BusinessLogicService.service.impl.BusinessLogicServiceImpl" target="com.pfnd.BusinessLogicService.repository.EvalutationHistoryRepository" relationship="TO_ONE">
+      <point x="0.0" y="-67.5" />
+      <point x="542.5" y="234.48598130841123" />
+      <point x="0.0" y="31.5" />
+    </edge>
+    <edge source="com.pfnd.BusinessLogicService.service.impl.BusinessLogicServiceImpl" target="com.pfnd.BusinessLogicService.repository.ScrapedSourcesRepository" relationship="TO_ONE">
+      <point x="-181.0" y="0.0" />
+      <point x="216.17757009345792" y="301.9859813084112" />
+      <point x="26.976635514018653" y="14.0" />
+    </edge>
+    <edge source="com.pfnd.BusinessLogicService.controller.BusinessLogicController" target="com.pfnd.BusinessLogicService.service.BusinessLogicService" relationship="TO_ONE">
+      <point x="-226.3364485981308" y="-67.5" />
+      <point x="-171.3364485981308" y="327.9789719626168" />
+      <point x="17.677570093457916" y="327.9789719626168" />
+      <point x="0.0" y="67.5" />
+    </edge>
+    <edge source="com.pfnd.BusinessLogicService.service.impl.FactCheckRequestHandlerImpl" target="com.pfnd.BusinessLogicService.service.FactCheckRequestHandler" relationship="REALIZATION">
+      <point x="0.0" y="-43.5" />
+      <point x="77.75" y="43.5" />
+    </edge>
+    <edge source="com.pfnd.BusinessLogicService.service.impl.BusinessLogicServiceImpl" target="com.pfnd.BusinessLogicService.service.FactCheckRequestHandler" relationship="TO_ONE">
+      <point x="181.0" y="0.0" />
+      <point x="821.25" y="301.9859813084112" />
+      <point x="0.0" y="43.5" />
+    </edge>
+    <edge source="com.pfnd.BusinessLogicService.service.impl.BusinessLogicServiceImpl" target="com.pfnd.BusinessLogicService.service.BusinessLogicService" relationship="REALIZATION">
+      <point x="-15.0" y="-67.5" />
+      <point x="504.3831775700935" y="326.4439252336449" />
+      <point x="181.0" y="34.04205607476635" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="0.7353951890034365" showDependencies="true" x="425.0000000000001" y="278.0" />
+  <SelectedNodes>
+    <node>com.pfnd.BusinessLogicService.service.impl.FactCheckRequestHandlerImpl</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Methods</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
