@@ -17,3 +17,4 @@ fi
 
 echo "ml-evaluation models download complete"
 
+python app/pika_consumer.py

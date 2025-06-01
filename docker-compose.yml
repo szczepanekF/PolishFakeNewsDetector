@@ -11,61 +11,18 @@ services:
     volumes:
       - pfnd2025_data:/rabbitmq
 
-  redis:
-    image: redis:7
-
-  ml-evaluation-api:
-    container_name: ml-evaluation-api
+  ml-evaluation-worker:
     build:
-      context: ./ml-evaluation-app
-      dockerfile: Dockerfile_API
-    ports:
-      - "8000:8000"
-    depends_on:
-      - rabbitmq
-      - redis
+      context: ./ml-evaluation-worker
+      dockerfile: Dockerfile
     environment:
-      - ENV=dev
-      - BROKER_URI=amqp://user:password@rabbitmq:5672//
-    volumes:
-      - pfnd2025_data:/ml-evaluation-app
-
-  ml-evaluation-worker-1:
-    container_name: ml-evaluation-worker-1
-    build:
-      context: ./ml-evaluation-app
-      dockerfile: Dockerfile_Worker
-    environment:
-      - ENV=dev
-      - BROKER_URI=amqp://user:password@rabbitmq:5672//
-      - HOSTNAME_PREFIX=worker1
+      - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
     depends_on:
       - rabbitmq
     volumes:
-      - pfnd2025_data:/ml-evaluation-app
-
-  ml-evaluation-worker-2:
-    container_name: ml-evaluation-worker-2
-    build:
-      context: ./ml-evaluation-app
-      dockerfile: Dockerfile_Worker
-    environment:
-      - ENV=dev
-      - BROKER_URI=amqp://user:password@rabbitmq:5672//
-      - HOSTNAME_PREFIX=worker2
-    depends_on:
-      - rabbitmq
-    volumes:
-      - pfnd2025_data:/ml-evaluation-app
-
-  flower:
-    image: mher/flower
-    container_name: flower
-    command: celery --broker=amqp://user:password@rabbitmq:5672// flower
-    ports:
-      - "5555:5555"
-    depends_on:
-      - rabbitmq
+      - pfnd2025_data:/ml-evaluation-worker
+    deploy:
+      replicas: 3
 
   nginx:
     image: nginx:stable-alpine
