@@ -10,9 +10,9 @@ if [ -d "$MODEL_DIR" ] && [ "$(ls -A $MODEL_DIR)" ]; then
   echo "Transformers model already exists in $MODEL_DIR, skipping download."
 else
   echo "Downloading Transformers model: nie3e/sentiment-polish-gpt2-large"
-  python -c "\
-from huggingface_hub import snapshot_download; \
-snapshot_download('nie3e/sentiment-polish-gpt2-large', local_dir='$MODEL_DIR', local_dir_use_symlinks=False)"
+python -c "\
+  from huggingface_hub import snapshot_download; \
+  snapshot_download('nie3e/sentiment-polish-gpt2-large', local_dir='$MODEL_DIR')"
 fi
 
 echo "ml-evaluation models download complete"

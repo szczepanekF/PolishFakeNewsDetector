@@ -1,7 +1,7 @@
 import spacy
 from spacy import Language
 
-from app.core.log import get_logger
+from app.core import get_logger
 
 _nlp = None
 

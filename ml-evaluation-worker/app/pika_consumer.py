@@ -6,13 +6,12 @@ from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel
 
 from app.nlp.pipeline import get_nlp_pipeline
-from app.core.config import settings
-from app.core.log import get_logger
-from app.models.schemas import TaskResponse, AnalyzeResult, ScoredValue
+from app.core import get_config, get_logger
+from app.schemas import TaskResponse, AnalyzeResult, ScoredValue
 
 logger = get_logger(__name__)
 
-connection = pika.BlockingConnection(pika.URLParameters(settings.BROKER_URI))
+connection = pika.BlockingConnection(pika.URLParameters(get_config().BROKER_URI))
 channel = connection.channel()
 
 channel.queue_declare(queue="analyze_tasks", durable=True)
@@ -64,7 +63,7 @@ def on_message(
     results["sentiment"] = analyze_sentiment(correlation_id, text)
 
     # SUCCESS
-    result = AnalyzeResult(overall_score=0.0, results=results, references=[])
+    result = AnalyzeResult(results=results)
     log_and_reply(
         reply_to,
         correlation_id,
