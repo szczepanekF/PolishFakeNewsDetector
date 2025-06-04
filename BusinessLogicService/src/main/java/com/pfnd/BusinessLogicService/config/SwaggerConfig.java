@@ -25,8 +25,8 @@ public class SwaggerConfig {
 
     private SecurityScheme createAPIKeyScheme() {
         return new SecurityScheme().type(SecurityScheme.Type.HTTP)
-                .bearerFormat("JWT")
-                .scheme("bearer");
+                                   .bearerFormat("JWT")
+                                   .scheme("bearer");
     }
 
     @Bean
@@ -54,9 +54,10 @@ public class SwaggerConfig {
                 .license(beerwareLicense);
 
         return new OpenAPI().addSecurityItem(new SecurityRequirement().
-                        addList("Bearer Authentication"))
-                .components(new Components().addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()))
-                .info(info)
-                .servers(List.of(devServer, prodServer));
+                                                     addList("Bearer Authentication"))
+                            .components(
+                                    new Components().addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()))
+                            .info(info)
+                            .servers(List.of(devServer, prodServer));
     }
 }

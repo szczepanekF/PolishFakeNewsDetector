@@ -13,7 +13,7 @@
         </encoder>
     </appender>
     <!-- CONSOLE for development purposes -->
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>

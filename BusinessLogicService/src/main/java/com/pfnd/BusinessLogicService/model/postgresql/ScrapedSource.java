@@ -19,7 +19,7 @@ import java.util.Set;
 public class ScrapedSource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private int id;
     private String url;
     private String sourceName;
     private String content;
@@ -27,8 +27,8 @@ public class ScrapedSource {
     @ManyToMany
     @JoinTable(
             name = "evaluation_sources",
-            joinColumns = { @JoinColumn(name = "scraped_source_id") },
-            inverseJoinColumns = { @JoinColumn(name = "evaluation_id") }
+            joinColumns = {@JoinColumn(name = "scraped_source_id")},
+            inverseJoinColumns = {@JoinColumn(name = "evaluation_id")}
     )
     Set<EvaluationHistoryRecord> evaluations = new HashSet<>();
 }

@@ -90,8 +90,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       HISTORY_DB_URL: jdbc:postgresql://historydb:5432/${HISTORY_DB_NAME}
       LOGSTASH_URL: logstash:5000
+      BROKER_URI: amqp://user:password@rabbitmq:5672//
     depends_on:
       - historydb
+      - rabbitmq
         #      - logstash
     volumes:
       - pfnd2025_data:/business-logic
