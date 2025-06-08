@@ -1,4 +1,7 @@
 from app.core import get_config, get_logger
+from app.pipelines.clean_process import CleanProcess
+from app.pipelines.emotion_detection_process import EmotionDetectionProcess
+from app.pipelines.summarize_results_process import SummarizeResultsProcess
 
 logger = get_logger(__name__)
 logger.info("Initiating pika consumer...")
@@ -10,11 +13,9 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel
 
-from app.nlp.pipeline import get_nlp_pipeline
-
 from app.pipelines.base import Pipeline
 from app.pipelines.sentiment_process import SentimentProcess
-from app.schemas import TaskResponse, AnalyzeResult, ScoredValue
+from app.schemas import TaskResponse
 
 connection = pika.BlockingConnection(pika.URLParameters(get_config().BROKER_URI))
 channel = connection.channel()
@@ -28,7 +29,10 @@ class AnalyzePipeline(Pipeline):
 
 analyze_pipeline = AnalyzePipeline(
     steps=[
+        CleanProcess(),
         SentimentProcess(),
+        EmotionDetectionProcess(),
+        SummarizeResultsProcess(),
     ]
 )
 
@@ -82,27 +86,6 @@ def on_message(
     )
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
-
-
-def analyze_sentiment(correlation_id: str, text: str) -> ScoredValue:
-    """
-    Analyze sentiment step
-    Args:
-        correlation_id (str): task id
-        text (str): text being analyzed
-
-    Returns:
-        ScoredValue: classification's label and score
-    """
-    logger.debug(f"{correlation_id} | Sentiment | Analysis started")
-
-    nlp = get_nlp_pipeline()
-    logger.debug(f"{correlation_id} | Sentiment | NLP pipeline loaded")
-
-    doc = nlp(text)
-    logger.debug(f"{correlation_id} | Sentiment | Text processed")
-
-    return ScoredValue(value=doc._.sentiment, score=doc._.sentiment_score)
 
 
 def send_reply(reply_to: str, correlation_id: str, data: BaseModel | dict):

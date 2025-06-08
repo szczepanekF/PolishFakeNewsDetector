@@ -21,6 +21,13 @@ class Process(ABC):
         """
         pass
 
+    def get_name(self) -> str:
+        """
+        Returns: name of process
+
+        """
+        pass
+
 
 from typing import List
 
@@ -55,8 +62,8 @@ class Pipeline(ABC):
                 body=TaskResponse(
                     id=context["id"],
                     text=context["text"],
-                    status=f"{context["step_num"]}. SENTIMENT ANALYSIS",
+                    status=f"{context["step_num"]}. {step.get_name()}",
                     result=context["analyze_result"],
                 ),
             )
-        return context
+        return context["analyze_result"]

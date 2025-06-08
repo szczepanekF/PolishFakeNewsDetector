@@ -1,17 +1,24 @@
 #!/bin/bash
-set -e  # exit on error
+set -e
 
-echo "Downloading spaCy model: pl_core_news_lg"
-python -m spacy download pl_core_news_lg
+MODELS=(
+    "nie3e/go-emotions-polish-gpt2-small-v0.0.1 models/emotion"
+    "nie3e/sentiment-polish-gpt2-large models/sentiment"
+)
 
-MODEL_DIR="models/sentiment"
+for ITEM in "${MODELS[@]}"; do
+    MODEL_NAME=$(echo "$ITEM" | awk '{print $1}')
+    MODEL_DIR=$(echo "$ITEM" | awk '{print $2}')
 
-if [ -d "$MODEL_DIR" ] && [ "$(ls -A $MODEL_DIR)" ]; then
-  echo "Transformers model already exists in $MODEL_DIR, skipping download."
-else
-  echo "Downloading Transformers model: nie3e/sentiment-polish-gpt2-large"
-python -c "from huggingface_hub import snapshot_download; snapshot_download('nie3e/sentiment-polish-gpt2-large', local_dir='$MODEL_DIR')"
-fi
+    if [ -d "$MODEL_DIR" ] && [ "$(ls -A "$MODEL_DIR")" ]; then
+        echo "$MODEL_NAME already exists in $MODEL_DIR, skipping download."
+    else
+        echo "Downloading model $MODEL_NAME -> $MODEL_DIR"
+        python -c "from huggingface_hub import snapshot_download; snapshot_download('$MODEL_NAME', local_dir='$MODEL_DIR')"
+    fi
+
+    echo "----------------------------"
+done
 
 echo "ml-evaluation models download complete"
 
