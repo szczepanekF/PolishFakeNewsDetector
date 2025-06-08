@@ -1,3 +1,8 @@
+from app.core import get_config, get_logger
+
+logger = get_logger(__name__)
+logger.info("Initiating pika consumer...")
+
 import json
 
 import pika
@@ -6,15 +11,26 @@ from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel
 
 from app.nlp.pipeline import get_nlp_pipeline
-from app.core import get_config, get_logger
-from app.schemas import TaskResponse, AnalyzeResult, ScoredValue
 
-logger = get_logger(__name__)
+from app.pipelines.base import Pipeline
+from app.pipelines.sentiment_process import SentimentProcess
+from app.schemas import TaskResponse, AnalyzeResult, ScoredValue
 
 connection = pika.BlockingConnection(pika.URLParameters(get_config().BROKER_URI))
 channel = connection.channel()
 
 channel.queue_declare(queue="analyze_tasks", durable=True)
+
+
+class AnalyzePipeline(Pipeline):
+    pass
+
+
+analyze_pipeline = AnalyzePipeline(
+    steps=[
+        SentimentProcess(),
+    ]
+)
 
 
 def log_and_reply(reply_to: str, correlation_id: str, body: dict | BaseModel):
@@ -52,22 +68,17 @@ def on_message(
         TaskResponse(id=correlation_id, text=text, status="0. STARTED"),
     )
 
-    results = {}
-
-    # 1. SENTIMENT
-    log_and_reply(
-        reply_to,
-        correlation_id,
-        TaskResponse(id=correlation_id, text=text, status="1. SENTIMENT"),
+    pipeline_result = analyze_pipeline.run(
+        {"id": correlation_id, "text": text},
+        {"fun": log_and_reply, "correlation_id": correlation_id, "reply_to": reply_to},
     )
-    results["sentiment"] = analyze_sentiment(correlation_id, text)
 
-    # SUCCESS
-    result = AnalyzeResult(results=results)
     log_and_reply(
         reply_to,
         correlation_id,
-        TaskResponse(id=correlation_id, text=text, status="SUCCESS", result=result),
+        TaskResponse(
+            id=correlation_id, text=text, status="SUCCESS", result=pipeline_result
+        ),
     )
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
