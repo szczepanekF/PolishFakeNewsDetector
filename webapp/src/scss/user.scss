@@ -1,0 +1,14 @@
+.password-reset-view{
+  .card{
+    width: 95% !important;
+  }
+
+  .label-col{
+    padding: 0 !important;
+  }
+
+  #newPassword,
+  #newPasswordRepeat{
+    border-radius: 0.375rem 0 0 0.375rem;
+  }
+}

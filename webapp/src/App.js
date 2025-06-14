@@ -1,25 +1,58 @@
-import logo from './logo.svg';
-import './App.css';
+import "./css/main.css";
+import "./css/variables.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+import { useState, useEffect } from "react";
+import {
+    BrowserRouter as Router,
+    Route,
+    Routes,
+    useLocation,
+    useNavigate,
+} from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import Login from "./guest/Login";
+import Error from "./Error";
+import ResetPassword from "./guest/ResetPassword";
+import ChangePassword from "./guest/ChangePassword";
+import Sidebar from "./Sidebar";
+import Logout from "./guest/Logout";
+import Checker from "./detector/Checker";
+
+export default function Base() {
+  return (
+      <Router>
+        <App />
+      </Router>
+  );
+}
 
 function App() {
+    const [guest, setGuest] = useState(false);
+    // const [page, setPage] = useState("");
+    const [user, setUser] = useState(null);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={guest ? "layout guest" : "layout"}>
+        <div className="sidebar-icon"></div>
+        <Sidebar guest={guest}></Sidebar>
+        <div className="main-content">
+            <Routes>
+                <Route path="/login" element={<Login setGuest={setGuest} />} />
+                <Route path="/logout" element={<Logout setUser={setUser} setGuest={setGuest} />} />
+                <Route path="/error" element={<Error />} />
+                {/*<Route path="/register" element={<Register />} />*/}
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route
+                    path="/change-password/:userId"
+                    element={<ChangePassword />}
+                />
+                <Route path="/check" element={<Checker user={user} setGuest={setGuest} />} />
+                <Route path={"*"} element={<Error code={"404"}/>}/>
+            </Routes>
+        </div>
+        <ToastContainer />
     </div>
   );
 }
 
-export default App;

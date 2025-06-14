@@ -1,0 +1,33 @@
+/*!******************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/scss/variables.scss ***!
+  \******************************************************************************************************************/
+:root {
+  --bg-color: white;
+  --text-color: #272643;
+  --primary-gray: #6b6b73;
+  --secondary-gray: #cfcee3;
+  --primary-color: #3976b3;
+  --text-on-primary: white;
+  --secondary-color: #8cd9d9;
+  --text-on-secondary: var(--text-color);
+  --detail-color: #e3f6f5;
+  --text-on-detail: var(--text-color);
+  --success-color: #287d47;
+  --text-on-success: white;
+  --error-color: #991035;
+  --text-on-error: white;
+  --warning-color: #c6af53;
+  --text-on-warning: var(--text-color);
+  --scroll-color: var(--secondary-gray);
+  --scroll-color-hover: var(--primary-gray);
+  --border-color: var(--primary-gray);
+  --sidebar-width: 270px;
+  --sidebar-width-full: 270px;
+  --sidebar-width-narrow: 80px;
+  --toastify-icon-color-error: var(--error-color);
+  --toastify-color-progress-error: var(--error-color);
+  --toastify-icon-color-success: var(--success-color);
+  --toastify-color-progress-success: var(--success-color);
+  --toastify-icon-color-warning: var(--warning-color);
+  --toastify-color-progress-warning: var(--warning-color);
+}
