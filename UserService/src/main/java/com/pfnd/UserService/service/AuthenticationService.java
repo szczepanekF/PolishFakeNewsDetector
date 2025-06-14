@@ -12,4 +12,6 @@ public interface AuthenticationService {
     AuthenticationResponse registerUser(RegisterUserDto request);
 
     AuthenticationResponse loginUser(LoginUserDto request);
+
+    String createPasswordRecoveryToken(String userEmailAddress);
 }

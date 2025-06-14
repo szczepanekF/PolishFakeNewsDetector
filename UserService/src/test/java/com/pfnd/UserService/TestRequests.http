@@ -2,7 +2,7 @@ POST http://localhost:8080/app/user/register
 Content-Type: application/json
 
 {
-  "email": "242544",
+  "email": "242544@edu.p.lodz.pl",
   "password": "test"
 }
 
@@ -15,6 +15,6 @@ POST http://localhost:8080/app/user/login
 Content-Type: application/json
 
 {
-  "usernameOrEmail": "242544",
+  "email": "242544@edu.p.lodz.pl",
   "password": "test"
 }

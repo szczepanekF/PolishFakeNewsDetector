@@ -1,10 +1,13 @@
 package com.pfnd.UserService.service;
 
+import com.pfnd.UserService.model.dto.UserDto;
 import com.pfnd.UserService.model.postgresql.User;
 import com.pfnd.UserService.model.response.AuthenticationResponse;
 
-public interface UserService {
-    AuthenticationResponse createUser();
+import java.util.List;
 
-    User getUserByEmailOrUsername(String emailOrUsername);
+public interface UserService {
+
+    UserDto getUserByEmail(String emailOrUsername);
+    List<UserDto> getAllUsers();
 }

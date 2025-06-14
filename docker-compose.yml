@@ -77,6 +77,8 @@ services:
       LOGSTASH_URL: logstash:5000
       GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
       GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
+      MAILING_PASSWORD: ${MAILING_PASSWORD}
+      JWT_KEY: ${JWT_KEY}
     depends_on:
       - userdb
       # - logstash
@@ -119,6 +121,7 @@ services:
       REDIS_URL: redis://redis:6379
       LOGSTASH_URL: logstash:5000
       BROKER_URI: amqp://user:password@rabbitmq:5672//
+      JWT_KEY: ${JWT_KEY}
     depends_on:
       - historydb
       - rabbitmq
