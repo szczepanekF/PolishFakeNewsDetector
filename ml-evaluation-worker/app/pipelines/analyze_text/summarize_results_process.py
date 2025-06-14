@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict, Any
 
 from app.llm.prompts import get_evaluate_summary_prompt
@@ -9,6 +10,7 @@ from app.schemas import (
     EvaluationSummaryInputSchema,
     ReferenceInputSchema,
     Reference,
+    ReferenceFootnote,
 )
 
 
@@ -30,8 +32,7 @@ class SummarizeResultsProcess(Process):
                 metrics=context["result"].results,
                 references=[
                     ReferenceInputSchema(
-                        id=claim.id,
-                        footnote_number=ft_num + 1,
+                        reference_id=claim.id,
                         content=claim.content,
                         label=claim.label,
                     )
@@ -44,14 +45,18 @@ class SummarizeResultsProcess(Process):
         context["result"].explanation = llm_result.explanation
         context["result"].label = llm_result.label
 
-        used_references_ids = llm_result.used_references_ids
+        footnote_map = {
+            rf.reference_id: rf.footnote_number for rf in llm_result.used_references
+        }
+
         context["result"].references = [
             Reference(
+                footnote_number=footnote_map[claim.id],
                 source=claim.source,
                 publication_date=claim.publication_date,
                 link=claim.link,
             )
             for claim in context["claims"]
-            if claim.id in used_references_ids
+            if claim.id in footnote_map
         ]
         return context

@@ -29,7 +29,7 @@ class FindReferencesProcess(Process):
             .join(ClaimEmbedding, Claim.id == ClaimEmbedding.claim_id)
             .where(cosine_dist <= 0.4)
             .order_by("score")
-            .limit(5)
+            .limit(10)
         )
 
         results = session.execute(stmt).all()

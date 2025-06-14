@@ -10,8 +10,9 @@ class ScoredValue(BaseModel):
 
 
 class Reference(BaseModel):
+    footnote_number: int = Field(...)
     source: str = Field(...)
-    publication_date: datetime = Field(default=None)
+    publication_date: datetime = Field(...)
     link: str = Field(...)
 
 
@@ -53,8 +54,7 @@ class ClaimSummaryOutputSchema(BaseModel):
 
 
 class ReferenceInputSchema(BaseModel):
-    id: int
-    footnote_number: int
+    reference_id: int
     content: str
     label: str
 
@@ -65,9 +65,14 @@ class EvaluationSummaryInputSchema(BaseModel):
     references: list[ReferenceInputSchema] = Field(default_factory=list)
 
 
+class ReferenceFootnote(BaseModel):
+    footnote_number: int = 0
+    reference_id: int = 0
+
+
 class EvaluationSummaryOutputSchema(BaseModel):
     label: ClassificationLabel = 0
     explanation: str = (
         "<krótkie, ale treściwe uzasadnienie decyzji, oparte na referencjach i ocenach>"
     )
-    used_references_ids: list[int] = []
+    used_references: list[ReferenceFootnote] = [ReferenceFootnote()]

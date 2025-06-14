@@ -67,7 +67,13 @@ def log_and_reply_step():
                     logger.info(body)
 
                 if channel and reply_to and correlation_id:
-                    send_reply(channel, reply_to, correlation_id, body)
+                    try:
+                        send_reply(channel, reply_to, correlation_id, body)
+                    except Exception:
+                        if logger:
+                            logger.error(
+                                f"Error while sending reply status to {reply_to} {correlation_id}"
+                            )
 
             return result
 
