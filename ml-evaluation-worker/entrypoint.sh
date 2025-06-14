@@ -4,6 +4,7 @@ set -e
 MODELS=(
     "nie3e/go-emotions-polish-gpt2-small-v0.0.1 models/emotion"
     "nie3e/sentiment-polish-gpt2-large models/sentiment"
+    "sdadas/mmlw-retrieval-roberta-large-v2 models/text-encoder"
 )
 
 for ITEM in "${MODELS[@]}"; do
@@ -22,4 +23,5 @@ done
 
 echo "ml-evaluation models download complete"
 
+python app/db/init_db.py
 python app/pika_consumer.py

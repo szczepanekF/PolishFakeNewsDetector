@@ -4,6 +4,8 @@ from typing import Dict, Any
 from transformers import pipeline
 
 from app.core import get_logger
+
+from app.pika_utils import log_and_reply_step
 from app.pipelines.base import Process
 from app.schemas import ScoredValue
 
@@ -24,13 +26,10 @@ class SentimentProcess(Process):
     def get_name(self) -> str:
         return "Sentiment Analysis"
 
+    @log_and_reply_step()
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        logger.debug(f"{context["id"]} | Sentiment | Analysis started")
-
         result = _get_sentiment_pipeline()(context["text"])[0]
-        logger.debug(f"{context["id"]} | Sentiment | Text processed | {result}")
-
-        context["analyze_result"].results["sentiment"] = ScoredValue(
+        context["result"].results["sentiment"] = ScoredValue(
             value=result["label"].lower(), score=result["score"]
         )
         return context

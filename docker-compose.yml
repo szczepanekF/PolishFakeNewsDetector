@@ -17,12 +17,28 @@ services:
       dockerfile: Dockerfile
     environment:
       - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
+      - DB_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@evaluation-sources-db:5432/evaluation_sources
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_URL=${OPENAI_API_URL}
+      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
     depends_on:
       - rabbitmq
+      - evaluation-sources-db
     volumes:
       - pfnd2025_data:/ml-evaluation-worker
     deploy:
       replicas: 3
+
+  evaluation-sources-db:
+    image: ramsrib/pgvector:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: evaluation_sources
+    ports:
+      - "5434:5432"
+    volumes:
+      - evaluation_sources_db_data:/data/db
 
   nginx:
     image: nginx:stable-alpine
@@ -78,6 +94,17 @@ services:
     volumes:
       - userdb_data:/data/db
 
+  historydb:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${HISTORY_DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - historydb_data:/data/db
+
   business-logic:
     container_name: pfnd-business-logic
     build:
@@ -100,16 +127,7 @@ services:
     volumes:
       - pfnd2025_data:/business-logic
 
-  historydb:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${HISTORY_DB_NAME}
-    ports:
-      - "5433:5432"
-    volumes:
-      - historydb_data:/data/db
+  
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
@@ -148,4 +166,5 @@ volumes:
   pfnd2025_data:
   userdb_data:
   historydb_data:
+  evaluation_sources_db_data:
   elasticsearch_data:
