@@ -4,9 +4,14 @@ import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pfnd.BusinessLogicService.Messages;
+import com.pfnd.BusinessLogicService.model.dto.AnalyzeResult;
 import com.pfnd.BusinessLogicService.model.dto.FactCheckResultDto;
 import com.pfnd.BusinessLogicService.model.messages.FactCheckCommand;
+import com.pfnd.BusinessLogicService.model.postgresql.AnalyzeResultRecord;
 import com.pfnd.BusinessLogicService.model.postgresql.EvaluationHistoryRecord;
+import com.pfnd.BusinessLogicService.model.postgresql.ReferenceRecord;
+import com.pfnd.BusinessLogicService.model.postgresql.ResultRecord;
+import com.pfnd.BusinessLogicService.repository.AnalyzeResultRepository;
 import com.pfnd.BusinessLogicService.repository.EvalutationHistoryRepository;
 import com.pfnd.BusinessLogicService.service.FactCheckRequestHandler;
 import com.rabbitmq.client.Channel;
@@ -18,12 +23,14 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
@@ -31,19 +38,17 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
 
-    // TODO add email to taskId map and map taskIds to Status
-    // TODO CREATE status and implement responses with status, or make the websocket impl
-    private final EvalutationHistoryRepository evalutationHistoryRepository; //TODO implement user service responsible for handling edge cases
-
+    private final EvalutationHistoryRepository evalutationHistoryRepository;
+    private final AnalyzeResultRepository analyzeResultRepository;
 
     private final RabbitTemplate rabbitTemplate;
     private final ConnectionFactory connectionFactory;
-    private final Set<String> ongoingTasks = new HashSet<>();
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public void requestEvaluation(FactCheckCommand request) {
         String correlationId = String.valueOf(request.historyId());
-        ongoingTasks.add(correlationId);
         String replyQueueName = "reply_" + correlationId;
 
         try (Connection conn = connectionFactory.createConnection();
@@ -51,11 +56,10 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             channel.queueDeclare(replyQueueName, false, true, false, Map.of("x-expires", 180000));
         } catch (IOException | TimeoutException e) {
             log.error(e.getMessage());
-            throw new RuntimeException(Messages.MSG_QUEUE_ERROR);
+            throw new RuntimeException(Messages.MSG_QUEUE_ERROR, e);
         }
 
         defineReplyQueueListener(replyQueueName, correlationId, request);
-        // Send request
         MessageProperties props = new MessageProperties();
         props.setReplyTo(replyQueueName);
         props.setCorrelationId(correlationId);
@@ -77,30 +81,78 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             String corrId = message.getMessageProperties().getCorrelationId();
             String body = new String(message.getBody());
             if (correlationId.equals(corrId)) {
-                log.info("Received evaluation response for historyid: {} - {}", request.historyId(), body);
+                log.info("Received evaluation response for historyId: {} - {}", request.historyId(), body);
                 try {
                     FactCheckResultDto result = new ObjectMapper().readValue(body, FactCheckResultDto.class);
-                    EvaluationHistoryRecord record =
-                            evalutationHistoryRepository.findById(request.historyId())
-                                                        .orElseThrow(
-                                                                () -> new RuntimeException(Messages.DOES_NOT_EXIST));
-                    record.setScore(result.getSentiment().getFinalScore());
-
-                    if (result.getStatus().equals("SUCCESS") || result.getStatus().equals("ERROR")) {
+                    if (isFinalStep(result)) {
+                        updateHistoryRecord(request, result);
+                        deleteInterimResult(request.historyId());
                         tryToDeleteTheQueue(replyQueueName);
+                    } else {
+                        storeInterimResultInRedis(result, request.historyId());
                     }
                 } catch (JacksonException e) {
                     tryToDeleteTheQueue(replyQueueName);
                     log.error(Messages.SERIALIZATION_ERROR, e);
                 }
-                ongoingTasks.remove(correlationId);
             }
             container.stop();
         });
         container.start();
-
     }
 
+    private boolean isFinalStep(FactCheckResultDto result) {
+        return result.getCurrentStep() == result.getAllSteps();
+    }
+
+    private void updateHistoryRecord(FactCheckCommand request, FactCheckResultDto result) {
+        EvaluationHistoryRecord record =
+                evalutationHistoryRepository.findById(request.historyId())
+                                            .orElseThrow(
+                                                    () -> new RuntimeException(Messages.DOES_NOT_EXIST));
+        List<AnalyzeResultRecord> resultList = analyzeResultRepository.findByHistoryRecord_Id(request.historyId());
+        if (!resultList.isEmpty()) {
+            log.error("{}{}", Messages.ENTITY_EXISTS, resultList.getFirst());
+            throw new RuntimeException(Messages.ENTITY_EXISTS + resultList.getFirst());
+        }
+        AnalyzeResult receivedResult = result.getResult();
+        List<ReferenceRecord> referenceRecords = receivedResult.getReferences().stream().map(ReferenceRecord::new)
+                                                               .toList();
+        List<ResultRecord> resultValues = receivedResult.getResults().entrySet().stream()
+                                                        .map(entry -> new ResultRecord(entry.getKey(),
+                                                                entry.getValue())).toList();
+        AnalyzeResultRecord resultRecord = AnalyzeResultRecord.builder()
+                                                              .historyRecord(record)
+                                                              .finalScore(receivedResult.getFinalScore())
+                                                              .label(receivedResult.getLabel())
+                                                              .explanation(receivedResult.getExplanation())
+                                                              .results(resultValues)
+                                                              .references(referenceRecords)
+                                                              .build();
+        try {
+            analyzeResultRepository.saveAndFlush(resultRecord);
+        } catch (Exception e) {
+            log.error("{}{}", Messages.SAVE_ERROR, record, e);
+            throw new RuntimeException(Messages.SAVE_ERROR + resultRecord);
+        }
+    }
+
+    private void storeInterimResultInRedis(FactCheckResultDto result, long historyId) {
+        try {
+            String key = "interim_result:" + historyId;
+            String value = new ObjectMapper().writeValueAsString(result);
+            redisTemplate.opsForValue().set(key, value, Duration.ofMinutes(10));
+            log.info("Stored interim result in Redis for historyId: {}", historyId);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize interim result", e);
+        }
+    }
+
+    private void deleteInterimResult(long historyId) {
+        String key = "interim_result:" + historyId;
+        redisTemplate.delete(key);
+        log.debug("Deleting interim result in Redis for historyId {}", historyId);
+    }
 
     private void tryToDeleteTheQueue(String queueName) {
         try (Connection conn = connectionFactory.createConnection();
@@ -109,7 +161,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             log.info("Deleted reply queue: {}", queueName);
         } catch (IOException | TimeoutException e) {
             log.error("Failed to delete queue: {}", queueName, e);
-            throw new RuntimeException(Messages.MSG_QUEUE_ERROR);
+            throw new RuntimeException(Messages.MSG_QUEUE_ERROR, e);
         }
 
     }

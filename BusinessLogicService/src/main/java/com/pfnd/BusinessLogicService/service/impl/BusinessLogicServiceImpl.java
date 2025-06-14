@@ -7,7 +7,6 @@ import com.pfnd.BusinessLogicService.model.dto.FactCheckResultDto;
 import com.pfnd.BusinessLogicService.model.messages.FactCheckCommand;
 import com.pfnd.BusinessLogicService.model.postgresql.EvaluationHistoryRecord;
 import com.pfnd.BusinessLogicService.repository.EvalutationHistoryRepository;
-import com.pfnd.BusinessLogicService.repository.ScrapedSourcesRepository;
 import com.pfnd.BusinessLogicService.service.BusinessLogicService;
 import com.pfnd.BusinessLogicService.service.FactCheckRequestHandler;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +21,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class BusinessLogicServiceImpl implements BusinessLogicService {
-    private ScrapedSourcesRepository scrapedSourcesRepository; //TODO implement user service responsible for handling edge cases
     private final EvalutationHistoryRepository evalutationHistoryRepository; //TODO implement user service responsible for handling edge cases
     private final FactCheckRequestHandler factCheckRequestHandler;
 
     @Override
     public EvaluationHistoryDto initiateFactCheck(FactCheckRequestDto request, int userId) {
         EvaluationHistoryRecord record = EvaluationHistoryRecord.builder().userId(userId).createdAt(new Date())
-                                                                .inputText(request.getText()).build();
+                                                                .inputText(request.getText()).status("REQUESTED").build();
         try {
             record = evalutationHistoryRepository.saveAndFlush(record);
         } catch (Exception e) {
-            log.error(Messages.SAVE_ERROR, record, e);
+            log.error("{}{}", Messages.SAVE_ERROR, record, e);
             throw new RuntimeException(Messages.SAVE_ERROR + record);
         }
         factCheckRequestHandler.requestEvaluation(

@@ -89,11 +89,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       HISTORY_DB_URL: jdbc:postgresql://historydb:5432/${HISTORY_DB_NAME}
+      REDIS_URL: redis://redis:6379
       LOGSTASH_URL: logstash:5000
       BROKER_URI: amqp://user:password@rabbitmq:5672//
     depends_on:
       - historydb
       - rabbitmq
+      - redis
         #      - logstash
     volumes:
       - pfnd2025_data:/business-logic
@@ -137,7 +139,11 @@ services:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     depends_on:
       - elasticsearch
-
+  redis:
+    image: redis:8.0
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 volumes:
   pfnd2025_data:
   userdb_data:
