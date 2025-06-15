@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FactCheckResultDto {
     private String id;
-    private int currentStep;
     private String message;
+    private int currentStep;
     private int allSteps;
     private AnalyzeResult result;
 }

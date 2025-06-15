@@ -44,10 +44,8 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
 
     private final RabbitTemplate rabbitTemplate;
     private final ConnectionFactory connectionFactory;
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void requestEvaluation(FactCheckCommand request) {
@@ -56,7 +54,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
 
         try (Connection conn = connectionFactory.createConnection();
              Channel channel = conn.createChannel(false)) {
-            channel.queueDeclare(replyQueueName, false, true, false, Map.of("x-expires", 180000));
+            channel.queueDeclare(replyQueueName, false, true, true, Map.of("x-expires", 180000));
         } catch (IOException | TimeoutException e) {
             log.error(e.getMessage());
             throw new RuntimeException(Messages.MSG_QUEUE_ERROR, e);
@@ -88,6 +86,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
                 try {
                     FactCheckResultDto result = objectMapper.readValue(body, FactCheckResultDto.class);
                     if (isFinalStep(result)) {
+                        log.info("Received final step {} {}", result.getCurrentStep(), result.getAllSteps());
                         updateHistoryRecord(request, result);
                         deleteInterimResult(request.historyId());
                         tryToDeleteTheQueue(replyQueueName);
@@ -190,39 +189,5 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             return Optional.empty();
         }
     }
-    //MANUAL TEST QUEUE LISTENER METHOD
-//    @RabbitListener(queues = "analyze_tasks")
-//    public void handleAnalyzeTask(Message message) throws IOException {
-//        String body = new String(message.getBody(), StandardCharsets.UTF_8);
-//        Map<String, Object> request = new ObjectMapper().readValue(body, new TypeReference<>() {
-//        });
-//
-//        // Example logic: "processing"
-//        String inputText = (String) request.get("text");
-//        FactCheckResultDto.Reference ref = new FactCheckResultDto.Reference(42, "title", "url");
-//        FactCheckResultDto.ScoredValue sample = new FactCheckResultDto.ScoredValue("value", 0.5f);
-//        FactCheckResultDto.AnalyzeResult analyzeRes =
-//                new FactCheckResultDto.AnalyzeResult(0.9f, ClassificationLabel.UNCLASSIFIED, "explanation",
-//                                                     Map.of("chuj", sample), List.of(ref));
-//        FactCheckResultDto result = new FactCheckResultDto("id", inputText, "status", analyzeRes);
-//
-//        // Get replyTo and correlationId
-//        MessageProperties props = message.getMessageProperties();
-//        String replyTo = props.getReplyTo();
-//        String correlationId = props.getCorrelationId();
-//
-//        if (replyTo != null && correlationId != null) {
-//            // Build reply message
-//            byte[] replyBytes = new ObjectMapper().writeValueAsBytes(result);
-//
-//            MessageProperties replyProps = new MessageProperties();
-//            replyProps.setCorrelationId(correlationId);
-//            replyProps.setContentType("application/json");
-//
-//            Message replyMessage = new Message(replyBytes, replyProps);
-//
-//            // Send reply
-//            rabbitTemplate.send("", replyTo, replyMessage);
-//        }
-//    }
+
 }
