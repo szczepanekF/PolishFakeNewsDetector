@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
@@ -45,6 +46,8 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
     private final ConnectionFactory connectionFactory;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public void requestEvaluation(FactCheckCommand request) {
@@ -65,7 +68,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
         props.setCorrelationId(correlationId);
         props.setContentType("application/json");
         try {
-            Message requestMessage = new Message(new ObjectMapper().writeValueAsBytes(request), props);
+            Message requestMessage = new Message(objectMapper.writeValueAsBytes(request), props);
             rabbitTemplate.send("", "analyze_tasks", requestMessage);
             log.info("Waiting for reply...");
         } catch (JsonProcessingException e) {
@@ -83,20 +86,21 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             if (correlationId.equals(corrId)) {
                 log.info("Received evaluation response for historyId: {} - {}", request.historyId(), body);
                 try {
-                    FactCheckResultDto result = new ObjectMapper().readValue(body, FactCheckResultDto.class);
+                    FactCheckResultDto result = objectMapper.readValue(body, FactCheckResultDto.class);
                     if (isFinalStep(result)) {
                         updateHistoryRecord(request, result);
                         deleteInterimResult(request.historyId());
                         tryToDeleteTheQueue(replyQueueName);
+                        container.stop();
                     } else {
                         storeInterimResultInRedis(result, request.historyId());
                     }
                 } catch (JacksonException e) {
                     tryToDeleteTheQueue(replyQueueName);
                     log.error(Messages.SERIALIZATION_ERROR, e);
+                    container.stop();
                 }
             }
-            container.stop();
         });
         container.start();
     }
@@ -121,6 +125,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
         List<ResultRecord> resultValues = receivedResult.getResults().entrySet().stream()
                                                         .map(entry -> new ResultRecord(entry.getKey(),
                                                                 entry.getValue())).toList();
+
         AnalyzeResultRecord resultRecord = AnalyzeResultRecord.builder()
                                                               .historyRecord(record)
                                                               .finalScore(receivedResult.getFinalScore())
@@ -129,10 +134,16 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
                                                               .results(resultValues)
                                                               .references(referenceRecords)
                                                               .build();
+        for (ResultRecord rr : resultValues) {
+            rr.setAnalyzeResult(resultRecord);
+        }
+        for (ReferenceRecord ref : referenceRecords) {
+            ref.setAnalyzeResult(resultRecord);
+        }
         try {
             analyzeResultRepository.saveAndFlush(resultRecord);
         } catch (Exception e) {
-            log.error("{}{}", Messages.SAVE_ERROR, record, e);
+            log.error("{}{}", Messages.SAVE_ERROR, resultRecord, e);
             throw new RuntimeException(Messages.SAVE_ERROR + resultRecord);
         }
     }
@@ -140,7 +151,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
     private void storeInterimResultInRedis(FactCheckResultDto result, long historyId) {
         try {
             String key = "interim_result:" + historyId;
-            String value = new ObjectMapper().writeValueAsString(result);
+            String value = objectMapper.writeValueAsString(result);
             redisTemplate.opsForValue().set(key, value, Duration.ofMinutes(10));
             log.info("Stored interim result in Redis for historyId: {}", historyId);
         } catch (JsonProcessingException e) {
@@ -164,6 +175,20 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             throw new RuntimeException(Messages.MSG_QUEUE_ERROR, e);
         }
 
+    }
+
+    @Override
+    public Optional<FactCheckResultDto> getInterimResult(long historyId) {
+        String key = "interim_result:" + historyId;
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) return Optional.empty();
+        try {
+            FactCheckResultDto dto = objectMapper.readValue(value, FactCheckResultDto.class);
+            return Optional.of(dto);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize interim result", e);
+            return Optional.empty();
+        }
     }
     //MANUAL TEST QUEUE LISTENER METHOD
 //    @RabbitListener(queues = "analyze_tasks")

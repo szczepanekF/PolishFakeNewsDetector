@@ -40,8 +40,8 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
     }
 
     @Override
-    public EvaluationHistoryDto getEvaluationStatus(UUID id) {
-        return null;
+    public FactCheckResultDto getEvaluationStatus(long id) {
+        return factCheckRequestHandler.getInterimResult(id).get();
     }
 
     @Override

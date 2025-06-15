@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface BusinessLogicService {
     EvaluationHistoryDto initiateFactCheck(FactCheckRequestDto request, int userId);
 
-    EvaluationHistoryDto getEvaluationStatus(UUID id);
+    FactCheckResultDto getEvaluationStatus(long id);
 
     FactCheckResultDto getEvaluationResult(UUID id);
 

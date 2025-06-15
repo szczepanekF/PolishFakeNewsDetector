@@ -22,6 +22,9 @@ public class ResultRecord {
     @Embedded
     private ScoredValue value;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "analyze_result_id")
+    private AnalyzeResultRecord analyzeResult;
     public ResultRecord(String key, ScoredValue value) {
         this.key = key;
         this.value = value;

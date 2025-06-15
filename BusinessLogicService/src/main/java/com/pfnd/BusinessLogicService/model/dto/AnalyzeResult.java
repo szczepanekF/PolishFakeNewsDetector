@@ -11,6 +11,7 @@ import java.util.Map;
 @NoArgsConstructor
 @Data
 public class AnalyzeResult {
+    private String text;
     private float finalScore;
     private ClassificationLabel label;
     private String explanation;

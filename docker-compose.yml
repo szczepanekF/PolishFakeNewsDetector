@@ -9,7 +9,7 @@ services:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password
     volumes:
-      - pfnd2025_data:/rabbitmq
+      - rabbitmq_data:/rabbitmq
 
   ml-evaluation-worker:
     build:
@@ -25,7 +25,7 @@ services:
       - rabbitmq
       - evaluation-sources-db
     volumes:
-      - pfnd2025_data:/ml-evaluation-worker
+      - ml_evaluation_worker_data:/ml-evaluation-worker
     deploy:
       replicas: 3
 
@@ -48,8 +48,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf:/etc/nginx/conf.d
-      - pfnd2025_data:/var/www/html
-      - pfnd2025_data:/var/log/nginx
+      - nginx_www_data:/var/www/html
+      - nginx_logs_data:/var/log/nginx
     depends_on:
       - webapp
 
@@ -59,7 +59,7 @@ services:
       context: ./webapp
       dockerfile: Dockerfile
     volumes:
-      - pfnd2025_data:/webapp/build # Output build files to shared volume
+      - webapp_data:/webapp/build # Output build files to shared volume
     depends_on:
       - business-logic
       - auth
@@ -83,7 +83,7 @@ services:
       - userdb
       # - logstash
     volumes:
-      - pfnd2025_data:/auth
+      - auth_data:/auth
 
   userdb:
     image: postgres:15
@@ -128,7 +128,7 @@ services:
       - redis
         #      - logstash
     volumes:
-      - pfnd2025_data:/business-logic
+      - business_logic_data:/business-logic
 
   
 
@@ -166,8 +166,14 @@ services:
       - "6379:6379"
     restart: unless-stopped
 volumes:
-  pfnd2025_data:
   userdb_data:
   historydb_data:
   evaluation_sources_db_data:
   elasticsearch_data:
+  rabbitmq_data:
+  ml_evaluation_worker_data:
+  auth_data:
+  business_logic_data:
+  nginx_www_data:
+  nginx_logs_data:
+  webapp_data:

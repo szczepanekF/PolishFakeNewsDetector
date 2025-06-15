@@ -32,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String token = tokenResolver.resolve(request);
-        System.err.println("TOKEN");
         if (token == null) {
             log.info("Received request without JWT token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -43,11 +42,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.debug("Processing request's JWT token");
         try {
             Claims claims = jwtDecoder.decode(token);
-            System.err.println("SZCZEPANEK " + claims.toString());
 
             String userId = claims.getSubject(); // or claims.get("userId")
             // Optionally: roles, expiration, etc.
-            System.err.println("SZCZEPANEK " + userId);
 
             // Create an authentication object and set it in SecurityContext
             UsernamePasswordAuthenticationToken auth =

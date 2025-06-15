@@ -50,8 +50,9 @@ public class BusinessLogicController {
     }
 
     @GetMapping("/status/{id}")
-    public ResponseEntity<Response<?>> getStatus(@PathVariable UUID id) {
-        return null;
+    public ResponseEntity<Response<?>> getStatus(@PathVariable long id) {
+
+        return ResponseEntity.ok(new Response<>(businessLogicService.getEvaluationStatus(id)));
     }
 
     @GetMapping("/result/{id}")

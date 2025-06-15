@@ -22,20 +22,20 @@ public class AnalyzeResultRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "historyId")
     public EvaluationHistoryRecord historyRecord;
 
     private float finalScore;
     @Enumerated(EnumType.STRING)
     private ClassificationLabel label;
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String explanation;
 
-    @OneToMany
-    @JoinColumn(name = "analyze_result_id")
+    @OneToMany(mappedBy = "analyzeResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResultRecord> results = new ArrayList<>();
 
-    @OneToMany
-    @JoinColumn(name = "analyze_result_id")
+    @OneToMany(mappedBy = "analyzeResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReferenceRecord> references = new ArrayList<>();
 }
