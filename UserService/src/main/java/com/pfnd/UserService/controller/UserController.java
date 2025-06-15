@@ -182,4 +182,32 @@ public class UserController {
                                          "Operation of creating recovery token or mail sending failed"));
         }
     }
+
+
+    @PostMapping("/changePassword")
+    @Operation(
+            summary = "Change user password",
+            description = "Changes the user password using a valid recovery token"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password successfully changed"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired token"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<Response<?>> changePassword(
+            @RequestParam("token") String token,
+            @RequestParam("newPassword") String newPassword) {
+        try {
+            authenticationService.changePassword(token, newPassword);
+            return ResponseEntity.ok(new Response<>("Password changed successfully"));
+        } catch (InvalidPasswordException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                 .body(new Response<>(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error changing password", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(new Response<>(e.getMessage()));
+        }
+    }
+
 }
