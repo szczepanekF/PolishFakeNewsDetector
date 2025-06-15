@@ -22,10 +22,10 @@ export default function Login({setGuest, setUserToken}) {
 
     console.log(process.env);
     const handleChange = (e) => {
-        if (e.target.name === "password") {
-            setIsPasswordValid(validatePassword(e.target.value));
-            console.log(isPasswordValid);
-        }
+        // if (e.target.name === "password") {
+        //     setIsPasswordValid(validatePassword(e.target.value));
+        //     console.log(isPasswordValid);
+        // }
         if (e.target.name === "email") {
             setIsEmailValid(validateEmail(e.target.value));
             console.log(isEmailValid);
@@ -95,10 +95,20 @@ export default function Login({setGuest, setUserToken}) {
             localStorage.removeItem("userLoginData");
         }
         try {
+
             const response = await axios.post(
-                `${process.env.REACT_APP_AUTH_API}/login`,
-                loginForm
+                `${process.env.REACT_APP_AUTH_API}/app/user/login`,
+                {
+                    "email": loginForm.email,
+                    "password": loginForm.password
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
             );
+
             await toast.success(
                 "Zalogowano pomyślnie.",{
                     autoClose: 3000,
@@ -143,8 +153,8 @@ export default function Login({setGuest, setUserToken}) {
             console.error("Error logging in:", error);
             await toast.error(
                 error.response
-                    ? error.response.data.message
-                        ? error.response.data.message
+                    ? error.response.data.error
+                        ? error.response.data.error
                         : "Wystąpił błąd przy logowaniu."
                     : "Wystąpił błąd przy logowaniu",{
                     autoClose: 3000,
@@ -152,6 +162,42 @@ export default function Login({setGuest, setUserToken}) {
             );
         }
     };
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        try {
+
+            const response = await axios.post(
+                `${process.env.REACT_APP_AUTH_API}/app/user/register`,
+                {
+                    "email": loginForm.email,
+                    "password": loginForm.password
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            await toast.success(
+                "Zarejestrowano pomyślnie.",{
+                    autoClose: 3000,
+                }
+            );
+        } catch (error) {
+            console.error("Error registering:", error);
+            await toast.error(
+                error.response
+                    ? error.response.data.error
+                        ? error.response.data.error
+                        : "Wystąpił błąd przy logowaniu."
+                    : "Wystąpił błąd przy logowaniu",{
+                    autoClose: 3000,
+                }
+            );
+        }
+    }
 
     const loginWithGoogle = async () => {
         localStorage.setItem("isGoogleLogin", JSON.stringify(true));
@@ -252,9 +298,9 @@ export default function Login({setGuest, setUserToken}) {
                         </div>
                         <div className="form-row">
                             <div
-                                    className="btn-container float-right"
-                                    style={{ display: "flex", flexDirection: "row" }}
-                                >
+                                className="btn-container float-right"
+                                style={{display: "flex", flexDirection: "row"}}
+                            >
                                 <button
                                     className="btn submit-btn btn-primary"
                                     onClick={loginWithGoogle}
@@ -262,13 +308,16 @@ export default function Login({setGuest, setUserToken}) {
                                     Kontynuuj przez Google &nbsp;
                                     <IconsFa.FaGoogle></IconsFa.FaGoogle>
                                 </button>
+                                <button  className="btn submit-btn btn-primary" onClick={handleRegister}>
+                                    Zarejestruj się
+                                </button>
                                 <button type="submit" className="btn submit-btn btn-success">
-                                        Login
-                                    </button>
-                                </div>
+                                    Zaloguj się
+                                </button>
+                            </div>
                         </div>
                         <div className="form-row">
-                            <hr />
+                            <hr/>
                         </div>
                         <div className="form-row">
                             <div className={"link-holder"}>

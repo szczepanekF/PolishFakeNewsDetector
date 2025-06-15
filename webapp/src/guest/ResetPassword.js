@@ -50,7 +50,7 @@ export default function ResetPassword() {
         try {
             // Make a POST request to decodeJWT endpoint with the token
             const response = await axios.post(
-                `${process.env.REACT_APP_AUTH_API}/passwordRecovery`,
+                `${process.env.REACT_APP_AUTH_API}/app/user/passwordRecovery`,
                 {"emailAddress": emailAddress}
             );
             if (response.status === 200) {
