@@ -11,23 +11,23 @@ services:
     volumes:
       - rabbitmq_data:/rabbitmq
 
-  ml-evaluation-worker:
-    build:
-      context: ./ml-evaluation-worker
-      dockerfile: Dockerfile
-    environment:
-      - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
-      - DB_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@evaluation-sources-db:5432/evaluation_sources
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_API_URL=${OPENAI_API_URL}
-      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
-    depends_on:
-      - rabbitmq
-      - evaluation-sources-db
-    volumes:
-      - ml_evaluation_worker_data:/ml-evaluation-worker
-    deploy:
-      replicas: 3
+  # ml-evaluation-worker:
+  #   build:
+  #     context: ./ml-evaluation-worker
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
+  #     - DB_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@evaluation-sources-db:5432/evaluation_sources
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - OPENAI_API_URL=${OPENAI_API_URL}
+  #     - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
+  #   depends_on:
+  #     - rabbitmq
+  #     - evaluation-sources-db
+  #   volumes:
+  #     - ml_evaluation_worker_data:/ml-evaluation-worker
+  #   deploy:
+  #     replicas: 3
 
   evaluation-sources-db:
     image: ramsrib/pgvector:15
