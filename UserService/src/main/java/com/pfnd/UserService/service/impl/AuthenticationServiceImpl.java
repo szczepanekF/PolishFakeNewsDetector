@@ -130,4 +130,38 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new InternalServerException("Unexpected error while processing your request.");
         }
     }
+
+    @Override
+    public void changePassword(String token, String newPassword)  {
+        try {
+            PasswordResetToken resetToken = passwordRecoveryTokenRepository.findByRecoveryToken(token)
+                                                                           .orElseThrow(() -> new InvalidPasswordException("Invalid or expired password reset token"));
+
+            if (resetToken.getExpirationDate().before(new Date())) {
+                passwordRecoveryTokenRepository.delete(resetToken); // clean up expired token
+                throw new InvalidPasswordException("Token has expired");
+            }
+
+            User user = resetToken.getUser();
+
+//            // You may want to validate newPassword format here (e.g., length, complexity)
+//            if (!isValidPassword(newPassword)) {
+//                throw new InvalidPasswordException("Password does not meet security requirements");
+//            }
+
+            // Update and save the new password
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            // Invalidate the token after use
+            passwordRecoveryTokenRepository.delete(resetToken);
+
+        } catch (InvalidPasswordException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while changing password", e);
+            throw new InternalServerException("Could not change password at this time. Please try again later.");
+        }
+    }
+
 }

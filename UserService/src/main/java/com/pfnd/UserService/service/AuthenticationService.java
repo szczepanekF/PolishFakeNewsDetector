@@ -14,4 +14,7 @@ public interface AuthenticationService {
     AuthenticationResponse loginUser(LoginUserDto request);
 
     String createPasswordRecoveryToken(String userEmailAddress);
+
+    void changePassword(String token, String newPassword);
 }
+
