@@ -1,4 +1,6 @@
 import "../css/user.css";
+import "../css/forms.css";
+import "../css/guest.css";
 import * as Icons from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import axios from "axios";

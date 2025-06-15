@@ -5,18 +5,47 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Sidebar(guest) {
+export default function Sidebar() {
     const location = useLocation();
     const navigate = useNavigate();
     const [classes, setClasses] = useState(["sidebar"]);
+    // useEffect(() => {
+    //     // if (guest && !classes.includes("hidden")) {
+    //     //     setClasses([...classes, "hidden"]);
+    //     // } else if (!guest) {
+    //     //     const cls = classes.filter(c => c !== "hidden");
+    //     //     setClasses(cls);
+    //     // }
+    // }, [classes]);
     useEffect(() => {
-        if (guest && !classes.includes("hidden")) {
-            setClasses([...classes, "hidden"]);
-        } else if (!guest) {
-            const cls = classes.filter(c => c !== "hidden");
-            setClasses(cls);
-        }
-    }, [classes, guest]);
+        const handleResize = () => {
+            if (window.innerWidth < 1200 && window.innerWidth >= 600) {
+                setClasses(prev => {
+                    const cls = prev.filter(c => c !== "hidden");
+                    if (!cls.includes("narrow")) cls.push("narrow");
+                    return cls;
+                });
+            } else if (window.innerWidth < 600) {
+                setClasses(prev => {
+                    const cls = prev.filter(c => c !== "narrow");
+                    if (!cls.includes("hidden")) cls.push("hidden");
+                    return cls;
+                });
+            } else {
+                setClasses(["sidebar"]);
+            }
+        };
+
+        // Call once to initialize based on current width
+        handleResize();
+
+        // Add listener
+        window.addEventListener("resize", handleResize);
+
+        // Clean up on unmount
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
 
     return (
         <div className={classes.join(" ")}>

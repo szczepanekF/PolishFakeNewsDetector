@@ -1,4 +1,6 @@
 import * as Icons from "react-icons/fi";
+import "../css/forms.css";
+import "../css/checker.css";
 import {useEffect, useState} from "react";
 import axios from "axios";
 import {toast} from "react-toastify";
@@ -65,8 +67,7 @@ export default function Checker({user, setGuest}){
                 </div>
                 <div className="card-body">
                     <form onSubmit={handleSubmit}>
-                        <div className="row">
-                            <div className="col-md-12">
+                        <div className="form-row">
                                 <textarea
                                     id="textToCheck"
                                     name="text" // Add name attribute
@@ -76,14 +77,14 @@ export default function Checker({user, setGuest}){
                                     placeholder="Twój tekst do sprawdzenia..."
                                     required
                                 />
-                            </div>
                         </div>
+                        <div className={"form-row"}>
+                        <div className={"btn-container"}>
                         <button className={"btn btn-primary"}>Sprawdź</button>
+                        </div></div>
                     </form>
-                    <div className="row">
-                        <div className="col-md-12">
+                    <div className="answer-container">
                             <div className="answer">{answer}</div>
-                        </div>
                     </div>
                 </div>
             </div>

@@ -1,9 +1,12 @@
 import * as Icons from "react-icons/fi";
 import * as IconsFa from "react-icons/fa6";
+import "../css/forms.css";
+import "../css/guest.css";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import {validatePassword, validateEmail} from "./validation";
 
 export default function Login(setGuest) {
     const location = useLocation();
@@ -15,10 +18,16 @@ export default function Login(setGuest) {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isRememberMeChecked, setIsRememberMeChecked] = useState(false);
     const [isPasswordValid, setIsPasswordValid] = useState(false);
+    const [isEmailValid, setIsEmailValid] = useState(false);
 
     const handleChange = (e) => {
         if (e.target.name === "password") {
-            setIsPasswordValid(e.target.checkValidity());
+            setIsPasswordValid(validatePassword(e.target.value));
+            console.log(isPasswordValid);
+        }
+        if (e.target.name === "usernameOrEmail") {
+            setIsEmailValid(validateEmail(e.target.value));
+            console.log(isEmailValid);
         }
         setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
     };
@@ -154,8 +163,7 @@ export default function Login(setGuest) {
                 </div>
                 <div className="card-body">
                     <form onSubmit={handleSubmit}>
-                        <div className="row">
-                            <div className="col-md-2">
+                        <div className="form-row">
                                 <label
                                     className="input-label"
                                     htmlFor="enterUsername"
@@ -163,27 +171,35 @@ export default function Login(setGuest) {
                                 >
                                     E-mail
                                 </label>
-                            </div>
-                            <div className="col-md-10">
+                            <div className={"form-validation-input"}>
                                 <input
                                     id="enterUsername"
                                     name="usernameOrEmail" // Add name attribute
                                     className="form-control"
-                                    type="text"
+                                    type="email"
                                     value={loginForm.usernameOrEmail}
                                     onChange={handleChange}
                                     placeholder="E-mail..."
                                     required
                                 />
+                                <p
+                                    className={isEmailValid ? "text-success" : "text-danger"}
+                                    style={{
+                                        visibility:
+                                            loginForm.usernameOrEmail !== "" ? "visible" : "hidden",
+                                    }}
+                                >
+                                    {isEmailValid
+                                        ? ""
+                                        : "Niepoprawny format e-mail"}
+                                </p>
                             </div>
                         </div>
-                        <div className="row">
-                            <div className="col-md-2">
-                                <label className="input-label" htmlFor="enterPassword">
-                                    Hasło
-                                </label>
-                            </div>
-                            <div className="col-md-9" style={{ paddingRight: 0 }}>
+                        <div className="form-row password-input-container">
+                            <label className="input-label" htmlFor="enterPassword">
+                                Hasło
+                            </label>
+                            <div className={"form-validation-input"}>
                                 <input
                                     id="enterPassword"
                                     name="password" // Add name attribute
@@ -206,8 +222,7 @@ export default function Login(setGuest) {
                                         : "Password invalid, rules: 8-20 signs, one uppercase letter, one lowercase letter, extra sign and number"}
                                 </p>
                             </div>
-                            <div className="col-md-1 show-password">
-                                <div
+                            <div
                                     className="show-password-btn"
                                     onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                                     data-testid="togglePasswordVisibility"
@@ -217,12 +232,9 @@ export default function Login(setGuest) {
                                     ) : (
                                         <Icons.FiEyeOff />
                                     )}
-                                </div>
                             </div>
                         </div>
-                        <div className="row">
-                            <div className="col-md-2"></div>
-                            <div className="col-md-10">
+                        <div className="form-row">
                                 <input
                                     type="checkbox"
                                     id="stay-logged-in"
@@ -231,42 +243,36 @@ export default function Login(setGuest) {
                                         setIsRememberMeChecked(!isRememberMeChecked);
                                     }}
                                 />
-                                <label htmlFor="stay-logged-in"> Remember me</label>
-                            </div>
+                                <label htmlFor="stay-logged-in"> Zapamiętaj mnie</label>
                         </div>
-                        <div className="row">
-                            <div className="col-md-12">
-                                <div
+                        <div className="form-row">
+                            <div
                                     className="btn-container float-right"
                                     style={{ display: "flex", flexDirection: "row" }}
                                 >
-                                    <button type="submit" className="btn submit-btn btn-success">
+                                <button
+                                    className="btn submit-btn btn-primary"
+                                    onClick={loginWithGoogle}
+                                >
+                                    Kontynuuj przez Google &nbsp;
+                                    <IconsFa.FaGoogle></IconsFa.FaGoogle>
+                                </button>
+                                <button type="submit" className="btn submit-btn btn-success">
                                         Login
                                     </button>
-                                    <button
-                                        className="btn submit-btn btn-success"
-                                        onClick={loginWithGoogle}
-                                    >
-                                        Continue with Google
-                                        <IconsFa.FaGoogle></IconsFa.FaGoogle>
-                                    </button>
                                 </div>
-                            </div>
                         </div>
-                        <div className="row">
+                        <div className="form-row">
                             <hr />
                         </div>
-                        <div className="row">
-                            {/*<div className="col-md-6">*/}
+                        <div className="form-row">
+                            <div className={"link-holder"}>
                             {/*    <a className="login-link" href="/register">*/}
                             {/*        <label>Don't have an account? Register!</label>*/}
                             {/*    </a>*/}
-                            {/*</div>*/}
-                            <div className="col-md-12">
                                 <a className="login-link" href="/reset-password">
                                     <label>Nie pamiętasz hasła?</label>
-                                </a>
-                            </div>
+                                </a></div>
                         </div>
                     </form>
                 </div>

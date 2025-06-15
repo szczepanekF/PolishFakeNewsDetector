@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import "../css/forms.css";
+import "../css/guest.css";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -79,18 +81,16 @@ export default function ResetPassword() {
                 </div>
                 <div className="card-body">
                     <form>
-                        <div className="row">
-                            <div className="col-md-2">
+                        <div className="form-row">
                                 <label className="input-label" htmlFor="enterUsername">
-                                    E-mail
+                                    E&#8209;mail
                                 </label>
-                            </div>
-                            <div className="col-md-10">
+                            <div className={"form-validation-input"}>
                                 <input
                                     id="enterUsername"
                                     className="form-control"
                                     type="email"
-                                    placeholder="Enter e-mail..."
+                                    placeholder="E-mail..."
                                     data-testid="emailinput"
                                     onChange={handleEmailChange}
                                     value={emailAddress}
@@ -103,12 +103,11 @@ export default function ResetPassword() {
                                         visibility: emailAddress !== "" ? "visible" : "hidden",
                                     }}
                                 >
-                                    {isValidEmail ? "Email valid" : "Email invalid"}
+                                    {isValidEmail ? "" : "Niepoprawny format e-mail"}
                                 </p>
                             </div>
                         </div>
-                        <div className="row">
-                            <div className="col-md-12">
+                        <div className="form-row">
                                 <div className="btn-container float-right">
                                     <button
                                         className="btn submit-btn btn-success"
@@ -117,40 +116,34 @@ export default function ResetPassword() {
                                         Wyślij token resetu hasła
                                     </button>
                                 </div>
-                            </div>
                         </div>
                         <div
-                            className="row"
+                            className="form-row"
                             style={{ display: isTokenSent ? "flex" : "none" }}
                         >
-                            <div className="col-md-2">
                                 <label className="input-label" htmlFor="enterToken">
                                     Token
                                 </label>
-                            </div>
-                            <div className="col-md-8">
                                 <input
                                     id="enterToken"
                                     className="form-control"
                                     type="text"
-                                    placeholder="Enter token..."
+                                    placeholder="Token..."
                                     value={token}
                                     onChange={handleTokenChange}
                                 />
-                            </div>
-                            <div className="col-md-2">
                                 <button
                                     className="btn confirm-token-btn btn-success"
                                     onClick={goToChangePasswordPage}
+                                    style={{marginLeft: "4px"}}
                                 >
                                     Potwierdź
                                 </button>
-                            </div>
                         </div>
-                        <div className="row">
+                        <div className="form-row">
                             <hr />
                         </div>
-                        <div className="row">
+                        <div className="form-row">
                             {/*<div className="col-md-6">*/}
                             {/*    <div className="link-holder">*/}
                             {/*        <a className="login-link" href="/register">*/}
@@ -158,13 +151,11 @@ export default function ResetPassword() {
                             {/*        </a>*/}
                             {/*    </div>*/}
                             {/*</div>*/}
-                            <div className="col-md-12">
                                 <div className="link-holder">
                                     <a className="login-link" href="/login">
                                         <label>Wróć do strony logowania</label>
                                     </a>
                                 </div>
-                            </div>
                         </div>
                     </form>
                 </div>

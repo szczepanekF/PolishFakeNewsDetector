@@ -11,6 +11,10 @@
   box-sizing: border-box;
 }
 
+::selection {
+  background: var(--secondary-color) !important;
+}
+
 html, body, #root {
   height: 100%;
   width: 100%;
@@ -32,6 +36,16 @@ html .layout .sidebar-icon, body .layout .sidebar-icon, #root .layout .sidebar-i
 }
 html .layout:has(.sidebar.hidden), body .layout:has(.sidebar.hidden), #root .layout:has(.sidebar.hidden) {
   --sidebar-width: 0 !important;
+}
+html .layout:has(.sidebar.hidden) .sidebar-icon, body .layout:has(.sidebar.hidden) .sidebar-icon, #root .layout:has(.sidebar.hidden) .sidebar-icon {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  padding: 4px;
 }
 html .layout:has(.sidebar.narrow), body .layout:has(.sidebar.narrow), #root .layout:has(.sidebar.narrow) {
   --sidebar-width: var(--sidebar-width-narrow);
@@ -72,6 +86,9 @@ html .layout .sidebar.narrow:hover .logo-mini, body .layout .sidebar.narrow:hove
 }
 html .layout .sidebar.narrow:hover .logo, body .layout .sidebar.narrow:hover .logo, #root .layout .sidebar.narrow:hover .logo {
   display: block;
+}
+html .layout .sidebar.narrow .sidebar-items .item label, body .layout .sidebar.narrow .sidebar-items .item label, #root .layout .sidebar.narrow .sidebar-items .item label {
+  display: none;
 }
 html .layout .sidebar.show, html .layout .sidebar.show *, body .layout .sidebar.show, body .layout .sidebar.show *, #root .layout .sidebar.show, #root .layout .sidebar.show * {
   display: flex !important;
@@ -144,8 +161,17 @@ html .layout .main-content, body .layout .main-content, #root .layout .main-cont
   transition: all 0.4s ease-in-out;
   flex-grow: 1;
 }
+html .layout .main-content .guest-logo, body .layout .main-content .guest-logo, #root .layout .main-content .guest-logo {
+  height: 80px;
+  margin-bottom: 20px;
+}
 html .layout .main-content .card .card-header, body .layout .main-content .card .card-header, #root .layout .main-content .card .card-header {
   justify-content: center;
+}
+html .layout .main-content.guest, body .layout .main-content.guest, #root .layout .main-content.guest {
+  padding-block: 10%;
+  text-align: center;
+  margin: 0;
 }
 
 @media (max-width: 1200px) {
@@ -269,4 +295,18 @@ html .layout .main-content .card .card-header, body .layout .main-content .card 
 .error-view .card .error-content {
   font-size: 16px;
   color: var(--text-color);
+}
+
+input[type=checkbox] {
+  accent-color: var(--primary-color);
+}
+
+a {
+  color: var(--primary-color) !important;
+}
+a:hover, a:active {
+  font-weight: bold;
+}
+a, a * {
+  cursor: pointer;
 }
