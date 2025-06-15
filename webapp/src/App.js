@@ -32,7 +32,7 @@ export default function Base() {
 function App() {
     const [guest, setGuest] = useState(true);
     // const [page, setPage] = useState("");
-    const [user, setUser] = useState(null);
+    const [userToken, setUserToken] = useState("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNDI1NDQiLCJlbWFpbEFkZHJlc3MiOiIyNDI1NDRAZWR1LnAubG9kei5wbCIsInVzZXJJZCI6MSwiaWF0IjoxNzQ5MDQ3MzcwLCJleHAiOjEyMDAxNzQ5MDQ3MzcwfQ.AUZmO5GEH5mqX6fx7aaMTMq77uSmkhf2Zb92cTDIn3c");
 
   return (
     <div className={guest ? "layout guest" : "layout"}>
@@ -44,8 +44,8 @@ function App() {
                 <img src={logo} className={"guest-logo"} alt={"PolishFakeNewsDetector"} />
                 : null}
             <Routes>
-                <Route path="/login" element={<Login setGuest={setGuest} />} />
-                <Route path="/logout" element={<Logout setUser={setUser} setGuest={setGuest} />} />
+                <Route path="/login" element={<Login setGuest={setGuest} setUserToken={setUserToken}/>} />
+                <Route path="/logout" element={<Logout setUserToken={setUserToken} setGuest={setGuest} />} />
                 <Route path="/error" element={<Error />} />
                 {/*<Route path="/register" element={<Register />} />*/}
                 <Route path="/reset-password" element={<ResetPassword />} />
@@ -53,7 +53,7 @@ function App() {
                     path="/change-password/:userId"
                     element={<ChangePassword />}
                 />
-                <Route path="/check" element={<Checker user={user} setGuest={setGuest} />} />
+                <Route path="/check" element={<Checker userToken={userToken} setGuest={setGuest} />} />
                 <Route path={"*"} element={<Error code={"404"}/>}/>
             </Routes>
         </div>

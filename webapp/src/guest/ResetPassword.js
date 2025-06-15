@@ -22,49 +22,47 @@ export default function ResetPassword() {
         setToken(event.target.value);
     };
 
-    const goToChangePasswordPage = async (e) => {
+    // const goToChangePasswordPage = async (e) => {
+    //     e.preventDefault();
+    //     try {
+    //         // Make a POST request to decodeJWT endpoint with the token
+    //         const response = await axios.post(
+    //             `${process.env.REACT_APP_AUTH_API}/passwordRecovery`,
+    //         {"emailAddress": emailAddress}
+    //         );
+    //         if (response.status === 200) {
+    //             const springUserId = response.data.containedObject;
+    //             location.pathname = `/change-password/${springUserId}`;
+    //             navigate(`/change-password/${springUserId}`);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error while email and token pair validation:", error);
+    //         toast.error(
+    //             "Wystąpił błąd przy walidowaniu tokenu.",{
+    //                 autoClose: 3000,
+    //             }
+    //         );
+    //     }
+    // };
+
+    const sendEmailWithRecoveryToken = async (e) => {
         e.preventDefault();
         try {
             // Make a POST request to decodeJWT endpoint with the token
             const response = await axios.post(
-                `http://localhost:8080/app/auth/checkEmailAndToken?userEmailAddress=${emailAddress}&token=${token}`
+                `${process.env.REACT_APP_AUTH_API}/passwordRecovery`,
+                {"emailAddress": emailAddress}
             );
             if (response.status === 200) {
-                const springUserId = response.data.containedObject;
-                location.pathname = `/change-password/${springUserId}`;
-                navigate(`/change-password/${springUserId}`);
+                const message = response.data.containedObject;
+                toast.success(message);
+                // location.pathname = `/change-password/${springUserId}`;
+                // navigate(`/change-password/${springUserId}`);
             }
         } catch (error) {
             console.error("Error while email and token pair validation:", error);
             toast.error(
                 "Wystąpił błąd przy walidowaniu tokenu.",{
-                    autoClose: 3000,
-                }
-            );
-        }
-    };
-
-    const sendEmailWithRecoveryToken = async (e) => {
-        e.preventDefault();
-        if (isValidEmail) {
-            try {
-                const response = await axios.post(
-                    `http://localhost:8080/app/auth/passwordRecovery?emailAddress=${emailAddress}`
-                );
-                if (response.status === 200) {
-                    setIsTokenSent(true);
-                }
-            } catch (error) {
-                console.error("Error while password recovery:", error);
-                toast.error(
-                    "Wystąpił błąd przy odzyskiwaniu hasła",{
-                        autoClose: 3000,
-                    }
-                );
-            }
-        } else {
-            toast.error(
-                "Wprowadź poprawny adres e-mail",{
                     autoClose: 3000,
                 }
             );
@@ -117,29 +115,29 @@ export default function ResetPassword() {
                                     </button>
                                 </div>
                         </div>
-                        <div
-                            className="form-row"
-                            style={{ display: isTokenSent ? "flex" : "none" }}
-                        >
-                                <label className="input-label" htmlFor="enterToken">
-                                    Token
-                                </label>
-                                <input
-                                    id="enterToken"
-                                    className="form-control"
-                                    type="text"
-                                    placeholder="Token..."
-                                    value={token}
-                                    onChange={handleTokenChange}
-                                />
-                                <button
-                                    className="btn confirm-token-btn btn-success"
-                                    onClick={goToChangePasswordPage}
-                                    style={{marginLeft: "4px"}}
-                                >
-                                    Potwierdź
-                                </button>
-                        </div>
+                        {/*<div*/}
+                        {/*    className="form-row"*/}
+                        {/*    style={{ display: isTokenSent ? "flex" : "none" }}*/}
+                        {/*>*/}
+                        {/*        <label className="input-label" htmlFor="enterToken">*/}
+                        {/*            Token*/}
+                        {/*        </label>*/}
+                        {/*        <input*/}
+                        {/*            id="enterToken"*/}
+                        {/*            className="form-control"*/}
+                        {/*            type="text"*/}
+                        {/*            placeholder="Token..."*/}
+                        {/*            value={token}*/}
+                        {/*            onChange={handleTokenChange}*/}
+                        {/*        />*/}
+                        {/*        <button*/}
+                        {/*            className="btn confirm-token-btn btn-success"*/}
+                        {/*            onClick={goToChangePasswordPage}*/}
+                        {/*            style={{marginLeft: "4px"}}*/}
+                        {/*        >*/}
+                        {/*            Potwierdź*/}
+                        {/*        </button>*/}
+                        {/*</div>*/}
                         <div className="form-row">
                             <hr />
                         </div>

@@ -45,7 +45,7 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                 newPassword: changePasswordForm.newPassword,
             };
             const response = await axios.post(
-                "http://localhost:8080/app/auth/changePassword",
+                `${process.env.REACT_APP_AUTH_API}/changePassword`,
                 body
             );
             if (response.status === 200) {

@@ -65,6 +65,9 @@ html .layout .sidebar, body .layout .sidebar, #root .layout .sidebar {
   justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
+  background-color: var(--bg-color);
+  z-index: 10;
+  transition: all 0.3s ease-in-out;
 }
 html .layout .sidebar.hidden, html .layout .sidebar.hidden *, body .layout .sidebar.hidden, body .layout .sidebar.hidden *, #root .layout .sidebar.hidden, #root .layout .sidebar.hidden * {
   display: none;
@@ -82,13 +85,16 @@ html .layout .sidebar.narrow:hover, body .layout .sidebar.narrow:hover, #root .l
   --sidebar-width: var(--sidebar-width-full);
 }
 html .layout .sidebar.narrow:hover .logo-mini, body .layout .sidebar.narrow:hover .logo-mini, #root .layout .sidebar.narrow:hover .logo-mini {
-  display: none;
+  display: none !important;
 }
 html .layout .sidebar.narrow:hover .logo, body .layout .sidebar.narrow:hover .logo, #root .layout .sidebar.narrow:hover .logo {
-  display: block;
+  display: block !important;
 }
-html .layout .sidebar.narrow .sidebar-items .item label, body .layout .sidebar.narrow .sidebar-items .item label, #root .layout .sidebar.narrow .sidebar-items .item label {
-  display: none;
+html .layout .sidebar.narrow:not(:hover) .sidebar-items .item, body .layout .sidebar.narrow:not(:hover) .sidebar-items .item, #root .layout .sidebar.narrow:not(:hover) .sidebar-items .item {
+  border-bottom: none;
+}
+html .layout .sidebar.narrow:not(:hover) .sidebar-items .item .label, body .layout .sidebar.narrow:not(:hover) .sidebar-items .item .label, #root .layout .sidebar.narrow:not(:hover) .sidebar-items .item .label {
+  display: none !important;
 }
 html .layout .sidebar.show, html .layout .sidebar.show *, body .layout .sidebar.show, body .layout .sidebar.show *, #root .layout .sidebar.show, #root .layout .sidebar.show * {
   display: flex !important;
@@ -138,6 +144,9 @@ html .layout .sidebar .sidebar-items .item:last-of-type, body .layout .sidebar .
 html .layout .sidebar .sidebar-items .item .icon, body .layout .sidebar .sidebar-items .item .icon, #root .layout .sidebar .sidebar-items .item .icon {
   height: 40px;
   width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 html .layout .sidebar .sidebar-items .item .icon i, body .layout .sidebar .sidebar-items .item .icon i, #root .layout .sidebar .sidebar-items .item .icon i {
   height: 24px;

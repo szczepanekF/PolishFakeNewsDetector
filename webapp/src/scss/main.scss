@@ -61,6 +61,9 @@ html, body, #root{
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
+      background-color: var(--bg-color);
+      z-index: 10;
+      transition: all 0.3s ease-in-out;
 
       &.hidden {
         &, * {
@@ -79,16 +82,20 @@ html, body, #root{
         &:hover{
           --sidebar-width: var(--sidebar-width-full);
           .logo-mini{
-            display: none;
+            display: none !important;
           }
           .logo{
-            display: block;
+            display: block !important;
           }
         }
 
-        .sidebar-items .item label{
-          display: none;
-        }
+        &:not(:hover){
+        .sidebar-items .item {
+          border-bottom: none;
+          .label {
+            display: none !important;
+          }
+        }}
       }
       &.show{
         &, *{
@@ -144,6 +151,9 @@ html, body, #root{
           .icon{
             height: 40px;
             width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             i{
               height: 24px;
               width: 24px;

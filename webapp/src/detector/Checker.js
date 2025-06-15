@@ -1,43 +1,52 @@
 import * as Icons from "react-icons/fi";
 import "../css/forms.css";
 import "../css/checker.css";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {toast} from "react-toastify";
 
-export default function Checker({user, setGuest}){
+export default function Checker({userToken, setGuest}){
     const [checkForm, setCheckForm] = useState({text: ""});
     const [answer, setAnswer] = useState("");
     const [status, setStatus] = useState(0);
-    const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNDI1NDQiLCJlbWFpbEFkZHJlc3MiOiIyNDI1NDRAZWR1LnAubG9kei5wbCIsInVzZXJJZCI6MSwiaWF0IjoxNzQ5MDQ3MzcwLCJleHAiOjEyMDAxNzQ5MDQ3MzcwfQ.AUZmO5GEH5mqX6fx7aaMTMq77uSmkhf2Zb92cTDIn3c";
+    const [textEmpty, setTextEmpty] = useState(false);
 
     const handleChange = (e) => {
+        if(e.target.name === "text"){
+            if(e.target.value.trim().length > 0){
+                setTextEmpty(false);
+            } else {
+                setTextEmpty(true);
+            }
+        }
         setCheckForm({ ...checkForm, [e.target.name]: e.target.value });
     };
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
+        if(checkForm.text.trim().length > 0){
         try {
             const response = await axios.post(
-                "http://localhost:8080/app/evaluate",
+                `${process.env.REACT_APP_LOGIC_API}/evaluate`,
                 checkForm,
                 {
-                'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'}
+                'Authorization': `Bearer ${userToken}`, 'Content-Type': 'application/json'}
             );
 
             // Retrieve the token from the response's containedObject
-            const res = response.data.containedObject;
+            const res = response.data.containedObject.text;
             // Save the token to local storage
+            setAnswer(res);
 
             // set and display response
-            setStatus(res.status);
-            const responseStatus = await axios.get(
-                `http://localhost:8080/app/status/${res.id}`,
-                {
-                    'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'}
-            );
-
-            // Retrieve the token from the response's containedObject
-            const status = responseStatus.data.containedObject;
+            // setStatus(res.status);
+            // const responseStatus = await axios.get(
+            //     `http://localhost:8080/app/status/${res.id}`,
+            //     {
+            //         'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'}
+            // );
+            //
+            // // Retrieve the token from the response's containedObject
+            // const status = responseStatus.data.containedObject;
 
         } catch (error) {
             console.error("Error logging in:", error);
@@ -51,13 +60,12 @@ export default function Checker({user, setGuest}){
                 }
             );
         }
+        } else {
+            setTextEmpty(true);
+        }
     };
 
-    // setGuest(false);
-
-    useEffect(() => {
-        setTimeout(() =>  setGuest(false), 2000);
-    }, [setGuest]);
+    setGuest(false);
 
     return (
         <div className="checker">
@@ -68,6 +76,7 @@ export default function Checker({user, setGuest}){
                 <div className="card-body">
                     <form onSubmit={handleSubmit}>
                         <div className="form-row">
+                            <div className="form-validation-input">
                                 <textarea
                                     id="textToCheck"
                                     name="text" // Add name attribute
@@ -77,14 +86,27 @@ export default function Checker({user, setGuest}){
                                     placeholder="Twój tekst do sprawdzenia..."
                                     required
                                 />
+                                <p
+                                    className={!textEmpty ? "text-success" : "text-danger"}
+                                    style={{
+                                        visibility:
+                                            checkForm.text !== "" ? "visible" : "hidden",
+                                    }}
+                                >
+                                    {!textEmpty
+                                        ? ""
+                                        : "Tekst nie może zostać pusty"}
+                                </p>
+                            </div>
                         </div>
                         <div className={"form-row"}>
-                        <div className={"btn-container"}>
-                        <button className={"btn btn-primary"}>Sprawdź</button>
-                        </div></div>
+                            <div className={"btn-container"}>
+                                <button className={"btn btn-primary"}>Sprawdź</button>
+                            </div>
+                        </div>
                     </form>
                     <div className="answer-container">
-                            <div className="answer">{answer}</div>
+                        <div className="answer">{answer}</div>
                     </div>
                 </div>
             </div>

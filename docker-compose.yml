@@ -11,23 +11,23 @@ services:
     volumes:
       - rabbitmq_data:/rabbitmq
 
-  ml-evaluation-worker:
-    build:
-      context: ./ml-evaluation-worker
-      dockerfile: Dockerfile
-    environment:
-      - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
-      - DB_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@evaluation-sources-db:5432/evaluation_sources
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_API_URL=${OPENAI_API_URL}
-      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
-    depends_on:
-      - rabbitmq
-      - evaluation-sources-db
-    volumes:
-      - ml_evaluation_worker_data:/ml-evaluation-worker
-    deploy:
-      replicas: 3
+  # ml-evaluation-worker:
+  #   build:
+  #     context: ./ml-evaluation-worker
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
+  #     - DB_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@evaluation-sources-db:5432/evaluation_sources
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - OPENAI_API_URL=${OPENAI_API_URL}
+  #     - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
+  #   depends_on:
+  #     - rabbitmq
+  #     - evaluation-sources-db
+  #   volumes:
+  #     - ml_evaluation_worker_data:/ml-evaluation-worker
+  #   deploy:
+  #     replicas: 3
 
   evaluation-sources-db:
     image: ramsrib/pgvector:15
@@ -47,8 +47,8 @@ services:
       - "80:80"
     volumes:
       - ./nginx/conf/default.conf:/etc/nginx/nginx.conf:ro
-      - pfnd2025_data:/var/www/html
-      - pfnd2025_data:/var/log/nginx
+      - webapp_data:/usr/share/nginx/html
+      - nginx_logs_data:/var/log/nginx
     depends_on:
       - webapp
       - auth
@@ -56,11 +56,13 @@ services:
 
   webapp:
     container_name: pfnd-webapp
+    expose:
+      - "80"
     build:
       context: ./webapp
       dockerfile: Dockerfile
     volumes:
-      - webapp_data:/webapp/build # Output build files to shared volume
+      - webapp_data:/usr/share/nginx/html # Output build files to shared volume
     depends_on:
       - business-logic
       - auth
@@ -79,7 +81,7 @@ services:
       JWT_KEY: ${JWT_KEY}
     depends_on:
       - userdb
-      # - logstash
+    # - logstash
     volumes:
       - auth_data:/auth
 
@@ -121,7 +123,7 @@ services:
       - historydb
       - rabbitmq
       - redis
-        #      - logstash
+    #      - logstash
     volumes:
       - business_logic_data:/business-logic
 

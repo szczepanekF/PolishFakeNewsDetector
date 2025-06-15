@@ -8,11 +8,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {validatePassword, validateEmail} from "./validation";
 
-export default function Login(setGuest) {
+export default function Login({setGuest, setUserToken}) {
     const location = useLocation();
     const navigate = useNavigate();
     const [loginForm, setLoginForm] = useState({
-        usernameOrEmail: "",
+        email: "",
         password: "",
     });
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -25,33 +25,33 @@ export default function Login(setGuest) {
             setIsPasswordValid(validatePassword(e.target.value));
             console.log(isPasswordValid);
         }
-        if (e.target.name === "usernameOrEmail") {
+        if (e.target.name === "email") {
             setIsEmailValid(validateEmail(e.target.value));
             console.log(isEmailValid);
         }
         setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
     };
 
-    const decodeJWToken = async (tokenParam) => {
-        try {
-            // Make a POST request to decodeJWT endpoint with the token
-            const response = await axios.post(
-                "http://localhost:8080/app/auth/decodeJWT",
-                tokenParam
-            );
-            localStorage.setItem(
-                "springUserId",
-                response.data.containedObject.SpringUserId
-            );
-        } catch (error) {
-            console.error("Error decoding JWT:", error);
-            toast.error(
-                "Błąd odczytu JWT. Proszę spróbować później.", {
-                    autoClose: 3000,
-                }
-            );
-        }
-    };
+    // const decodeJWToken = async (tokenParam) => {
+    //     try {
+    //         // Make a POST request to decodeJWT endpoint with the token
+    //         const response = await axios.post(
+    //             "http://localhost:8080/app/user/login",
+    //             tokenParam
+    //         );
+    //         localStorage.setItem(
+    //             "springUserId",
+    //             response.data.containedObject.SpringUserId
+    //         );
+    //     } catch (error) {
+    //         console.error("Error decoding JWT:", error);
+    //         toast.error(
+    //             "Błąd odczytu JWT. Proszę spróbować później.", {
+    //                 autoClose: 3000,
+    //             }
+    //         );
+    //     }
+    // };
 
     useEffect(() => {
         const isGoogleLogin = JSON.parse(localStorage.getItem("isGoogleLogin"));
@@ -60,20 +60,20 @@ export default function Login(setGuest) {
             const tokenParam = queryParams.get("token");
             if (tokenParam) {
                 localStorage.setItem("token", tokenParam);
-                decodeJWToken(tokenParam);
+                setUserToken(tokenParam);
                 localStorage.setItem("isGoogleLogin", JSON.stringify(false));
-                location.pathname = "/";
+                location.pathname = "/check";
                 navigate("/check");
                 window.location.reload();
             }
         }
-    }, []);
+    }, [location, navigate, setUserToken]);
 
     useEffect(() => {
         if (localStorage.getItem("userLoginData")) {
             const userLoginData = JSON.parse(localStorage.getItem("userLoginData"));
             setLoginForm({
-                usernameOrEmail: userLoginData.usernameOrEmail,
+                email: userLoginData.email,
                 password: userLoginData.password,
             });
             setIsRememberMeChecked(userLoginData.isRememberMeChecked);
@@ -85,7 +85,7 @@ export default function Login(setGuest) {
         e.preventDefault();
         if (isRememberMeChecked) {
             const userLoginData = {
-                usernameOrEmail: loginForm.usernameOrEmail,
+                email: loginForm.email,
                 password: loginForm.password,
                 isRememberMeChecked,
             };
@@ -95,7 +95,7 @@ export default function Login(setGuest) {
         }
         try {
             const response = await axios.post(
-                "http://localhost:8080/app/auth/login",
+                `${process.env.REACT_APP_AUTH_API}/login`,
                 loginForm
             );
             await toast.success(
@@ -105,35 +105,37 @@ export default function Login(setGuest) {
             );
 
             // Retrieve the token from the response's containedObject
-            const token = response.data.containedObject.token;
+            const token = response.data.containedObject;
             // Save the token to local storage
             localStorage.setItem("token", token);
+            setUserToken(token);
+            setGuest(false);
 
-            try {
-                // Make a POST request to decodeJWT endpoint with the token
-                const response = await axios.post(
-                    "http://localhost:8080/app/auth/decodeJWT",
-                    token
-                );
-                localStorage.setItem(
-                    "springUserId",
-                    response.data.containedObject.SpringUserId
-                );
-            } catch (error) {
-                console.error("Error decoding JWT:", error);
-                toast.error(
-                    "Błąd odczytu JWT. Proszę spróbować później",{
-                        autoClose: 3000,
-                    }
-                );
-            }
+            // try {
+            //     // Make a POST request to decodeJWT endpoint with the token
+            //     const response = await axios.post(
+            //         "http://localhost:8080/app/auth/decodeJWT",
+            //         token
+            //     );
+            //     localStorage.setItem(
+            //         "springUserId",
+            //         response.data.containedObject.SpringUserId
+            //     );
+            // } catch (error) {
+            //     console.error("Error decoding JWT:", error);
+            //     toast.error(
+            //         "Błąd odczytu JWT. Proszę spróbować później",{
+            //             autoClose: 3000,
+            //         }
+            //     );
+            // }
 
             // Reset form data after successful login
             setLoginForm({
-                usernameOrEmail: "",
+                email: "",
                 password: "",
             });
-            location.pathname = "/";
+            location.pathname = "/check";
             navigate("/check");
             window.location.reload();
         } catch (error) {
@@ -152,7 +154,7 @@ export default function Login(setGuest) {
 
     const loginWithGoogle = async () => {
         localStorage.setItem("isGoogleLogin", JSON.stringify(true));
-        window.location.href = "http://localhost:8080/oauth2/authorization/google";
+        window.location.href = `${process.env.REACT_APP_AUTH_API}/oauth2/authorization/google`;
     };
 
     return (
@@ -174,10 +176,10 @@ export default function Login(setGuest) {
                             <div className={"form-validation-input"}>
                                 <input
                                     id="enterUsername"
-                                    name="usernameOrEmail" // Add name attribute
+                                    name="email" // Add name attribute
                                     className="form-control"
                                     type="email"
-                                    value={loginForm.usernameOrEmail}
+                                    value={loginForm.email}
                                     onChange={handleChange}
                                     placeholder="E-mail..."
                                     required
@@ -186,7 +188,7 @@ export default function Login(setGuest) {
                                     className={isEmailValid ? "text-success" : "text-danger"}
                                     style={{
                                         visibility:
-                                            loginForm.usernameOrEmail !== "" ? "visible" : "hidden",
+                                            loginForm.email !== "" ? "visible" : "hidden",
                                     }}
                                 >
                                     {isEmailValid
@@ -218,8 +220,10 @@ export default function Login(setGuest) {
                                     }}
                                 >
                                     {isPasswordValid
-                                        ? "Password valid"
-                                        : "Password invalid, rules: 8-20 signs, one uppercase letter, one lowercase letter, extra sign and number"}
+                                        ? ""
+                                        : (loginForm.password ==='' ?
+                                            "Hasło jest wymagane"
+                                            : "Nieprawidłowe hasło, zasady: 8-20 znaków, jedna wielka litera, jedna mała litera, dodatkowy znak i liczba")}
                                 </p>
                             </div>
                             <div
