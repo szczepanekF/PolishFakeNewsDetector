@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface EvalutationHistoryRepository extends JpaRepository<EvaluationHistoryRecord, Integer> {
-    List<EvaluationHistoryRecord> findByUserId(int userId);
+public interface EvaluationHistoryRepository extends JpaRepository<EvaluationHistoryRecord, Integer> {
+    List<EvaluationHistoryRecord> findByUserIdOrderByCreatedAtDesc(int userId);
 }

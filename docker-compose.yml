@@ -9,7 +9,7 @@ services:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password
     volumes:
-      - pfnd2025_data:/rabbitmq
+      - rabbitmq_data:/rabbitmq
 
   ml-evaluation-worker:
     build:
@@ -17,25 +17,42 @@ services:
       dockerfile: Dockerfile
     environment:
       - BROKER_URI=amqp://user:password@rabbitmq:5672/%2F
+      - DB_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@evaluation-sources-db:5432/evaluation_sources
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_URL=${OPENAI_API_URL}
+      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
     depends_on:
       - rabbitmq
+      - evaluation-sources-db
     volumes:
-      - pfnd2025_data:/ml-evaluation-worker
+      - ml_evaluation_worker_data:/ml-evaluation-worker
     deploy:
       replicas: 3
+
+  evaluation-sources-db:
+    image: ramsrib/pgvector:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: evaluation_sources
+    ports:
+      - "5434:5432"
+    volumes:
+      - evaluation_sources_db_data:/data/db
 
   nginx:
     image: nginx:stable-alpine
     container_name: pfnd-nginx
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/conf/default.conf:/etc/nginx/nginx.conf:ro
       - pfnd2025_data:/var/www/html
       - pfnd2025_data:/var/log/nginx
     depends_on:
       - webapp
+      - auth
+      - business-logic
 
   webapp:
     container_name: pfnd-webapp
@@ -43,17 +60,14 @@ services:
       context: ./webapp
       dockerfile: Dockerfile
     volumes:
-      - pfnd2025_data:/webapp/build # Output build files to shared volume
+      - webapp_data:/webapp/build # Output build files to shared volume
     depends_on:
       - business-logic
       - auth
   auth:
-    container_name: pfnd-auth
     build:
       context: ./UserService
       dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -61,11 +75,13 @@ services:
       LOGSTASH_URL: logstash:5000
       GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
       GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
+      MAILING_PASSWORD: ${MAILING_PASSWORD}
+      JWT_KEY: ${JWT_KEY}
     depends_on:
       - userdb
       # - logstash
     volumes:
-      - pfnd2025_data:/auth
+      - auth_data:/auth
 
   userdb:
     image: postgres:15
@@ -78,26 +94,6 @@ services:
     volumes:
       - userdb_data:/data/db
 
-  business-logic:
-    container_name: pfnd-business-logic
-    build:
-      context: ./BusinessLogicService
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8080"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      HISTORY_DB_URL: jdbc:postgresql://historydb:5432/${HISTORY_DB_NAME}
-      LOGSTASH_URL: logstash:5000
-      BROKER_URI: amqp://user:password@rabbitmq:5672//
-    depends_on:
-      - historydb
-      - rabbitmq
-        #      - logstash
-    volumes:
-      - pfnd2025_data:/business-logic
-
   historydb:
     image: postgres:15
     environment:
@@ -108,6 +104,28 @@ services:
       - "5433:5432"
     volumes:
       - historydb_data:/data/db
+
+  business-logic:
+    build:
+      context: ./BusinessLogicService
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      HISTORY_DB_URL: jdbc:postgresql://historydb:5432/${HISTORY_DB_NAME}
+      REDIS_URL: redis://redis:6379
+      LOGSTASH_URL: logstash:5000
+      BROKER_URI: amqp://user:password@rabbitmq:5672//
+      JWT_KEY: ${JWT_KEY}
+    depends_on:
+      - historydb
+      - rabbitmq
+      - redis
+        #      - logstash
+    volumes:
+      - business_logic_data:/business-logic
+
+  
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
@@ -137,9 +155,20 @@ services:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
     depends_on:
       - elasticsearch
-
+  redis:
+    image: redis:8.0
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 volumes:
-  pfnd2025_data:
   userdb_data:
   historydb_data:
+  evaluation_sources_db_data:
   elasticsearch_data:
+  rabbitmq_data:
+  ml_evaluation_worker_data:
+  auth_data:
+  business_logic_data:
+  nginx_www_data:
+  nginx_logs_data:
+  webapp_data:

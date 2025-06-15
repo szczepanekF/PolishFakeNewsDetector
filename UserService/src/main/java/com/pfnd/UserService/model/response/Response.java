@@ -10,28 +10,33 @@ import java.util.Date;
 @Setter
 @Slf4j
 public class Response<T> {
-    private String message;
     private Date date;
-    private int code;
-    private String stacktrace;
+    private String error;
     private T containedObject;
 
 
-    public Response(final String message, final int code, final String stacktrace, final T containedObject) {
-        this.message = message;
+    public Response(final T containedObject) {
         this.date = new Date();
-        this.code = code;
-        this.stacktrace = stacktrace;
+        this.error = "";
         this.containedObject = containedObject;
     }
 
+    public Response(final String error) {
+        this.date = new Date();
+        this.error = error;
+        this.containedObject = null;
+    }
+
+    public Response(final String error,final T containedObject) {
+        this.date = new Date();
+        this.error = error;
+        this.containedObject = containedObject;
+    }
     @Override
     public String toString() {
         return "Response {" +
-                "message='" + message + '\'' +
                 ", date=" + date +
-                ", code=" + code +
-                ", stacktrace='" + stacktrace + '\'' +
+                ", error='" + error + '\'' +
                 ", containedObject=" + containedObject +
                 '}';
     }

@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 from bs4 import BeautifulSoup
 
-from app.core import get_logger
+from app.pika_utils import log_and_reply_step
 from app.pipelines.base import Process
 
 EMOJI_PATTERN = re.compile(
@@ -19,15 +19,14 @@ EMOJI_PATTERN = re.compile(
 INVISIBLE_CHARS_PATTERN = re.compile(
     r"[\u200b\u200c\u200d\u2060\ufeff\u180e\u2028\u2029\u00ad]"
 )
-logger = get_logger(__name__)
 
 
 class CleanProcess(Process):
     def get_name(self) -> str:
         return "Text preparation"
 
+    @log_and_reply_step()
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        logger.debug(f"{context["id"]} | Clean | Text cleaning started")
         text = context["text"]
 
         # remove html tags
@@ -48,5 +47,4 @@ class CleanProcess(Process):
         text = text.strip()
 
         context["text"] = text
-        logger.debug(f"{context["id"]} | Clean | Text cleaned successfully | {text}")
         return context

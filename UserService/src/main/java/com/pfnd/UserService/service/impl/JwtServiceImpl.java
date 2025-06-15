@@ -18,8 +18,8 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
     @Value("${jwt.secret}")
-    private String base64Key;
-    private SecretKey secretKey;
+    protected String base64Key;
+    protected SecretKey secretKey;
 
     @PostConstruct
     public void init() {
@@ -49,7 +49,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().clockSkewSeconds(60).verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
@@ -57,7 +57,7 @@ public class JwtServiceImpl implements JwtService {
         return (userEmail.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    protected boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

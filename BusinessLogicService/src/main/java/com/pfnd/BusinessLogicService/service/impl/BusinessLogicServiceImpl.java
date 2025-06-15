@@ -1,39 +1,37 @@
 package com.pfnd.BusinessLogicService.service.impl;
 
 import com.pfnd.BusinessLogicService.Messages;
-import com.pfnd.BusinessLogicService.model.dto.EvaluationHistoryDto;
-import com.pfnd.BusinessLogicService.model.dto.FactCheckRequestDto;
-import com.pfnd.BusinessLogicService.model.dto.FactCheckResultDto;
+import com.pfnd.BusinessLogicService.model.dto.*;
 import com.pfnd.BusinessLogicService.model.messages.FactCheckCommand;
+import com.pfnd.BusinessLogicService.model.postgresql.AnalyzeResultRecord;
 import com.pfnd.BusinessLogicService.model.postgresql.EvaluationHistoryRecord;
-import com.pfnd.BusinessLogicService.repository.EvalutationHistoryRepository;
-import com.pfnd.BusinessLogicService.repository.ScrapedSourcesRepository;
+import com.pfnd.BusinessLogicService.model.postgresql.ResultRecord;
+import com.pfnd.BusinessLogicService.repository.AnalyzeResultRepository;
+import com.pfnd.BusinessLogicService.repository.EvaluationHistoryRepository;
 import com.pfnd.BusinessLogicService.service.BusinessLogicService;
 import com.pfnd.BusinessLogicService.service.FactCheckRequestHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class BusinessLogicServiceImpl implements BusinessLogicService {
-    private ScrapedSourcesRepository scrapedSourcesRepository; //TODO implement user service responsible for handling edge cases
-    private final EvalutationHistoryRepository evalutationHistoryRepository; //TODO implement user service responsible for handling edge cases
+    private final EvaluationHistoryRepository evaluationHistoryRepository;
+    private final AnalyzeResultRepository analyzeResultRepository;
     private final FactCheckRequestHandler factCheckRequestHandler;
 
     @Override
     public EvaluationHistoryDto initiateFactCheck(FactCheckRequestDto request, int userId) {
         EvaluationHistoryRecord record = EvaluationHistoryRecord.builder().userId(userId).createdAt(new Date())
-                                                                .inputText(request.getText()).build();
+                .inputText(request.getText()).status("REQUESTED").build();
         try {
-            record = evalutationHistoryRepository.saveAndFlush(record);
+            record = evaluationHistoryRepository.saveAndFlush(record);
         } catch (Exception e) {
-            log.error(Messages.SAVE_ERROR, record, e);
+            log.error("{}{}", Messages.SAVE_ERROR, record, e);
             throw new RuntimeException(Messages.SAVE_ERROR + record);
         }
         factCheckRequestHandler.requestEvaluation(
@@ -42,17 +40,142 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
     }
 
     @Override
-    public EvaluationHistoryDto getEvaluationStatus(UUID id) {
-        return null;
+    public FactCheckResultDto getEvaluationStatus(long id) {
+        Optional<FactCheckResultDto> cacheResult = factCheckRequestHandler.getInterimResult(id);
+
+        if (cacheResult.isPresent()) {
+            log.debug("Found evaluation status in cache for id: {}", id);
+            return cacheResult.get();
+        }
+
+        log.info("Cache miss for id: {}, checking database", id);
+
+        try {
+            Optional<EvaluationHistoryRecord> recordOpt = evaluationHistoryRepository.findById((int) id);
+
+            if (recordOpt.isEmpty()) {
+                log.warn("Evaluation record not found in database for id: {}", id);
+                throw new RuntimeException("Evaluation not found for id: " + id);
+            }
+
+            EvaluationHistoryRecord record = recordOpt.get();
+
+            FactCheckResultDto dto = new FactCheckResultDto();
+            dto.setId(String.valueOf(record.getId()));
+            dto.setMessage(record.getInputText());
+
+            return dto;
+
+        } catch (Exception e) {
+            log.error("Error fetching evaluation status for id: {}", id, e);
+            throw new RuntimeException("Error fetching evaluation status: " + e.getMessage());
+        }
     }
 
     @Override
-    public FactCheckResultDto getEvaluationResult(UUID id) {
-        return null;
+    public FactCheckResultDto getEvaluationResult(int id) {
+        log.info("Fetching evaluation result for id: {}", id);
+
+        try {
+            Optional<EvaluationHistoryRecord> recordOpt = evaluationHistoryRepository.findById(id);
+
+            if (recordOpt.isEmpty()) {
+                log.warn("Evaluation record not found for id: {}", id);
+                throw new RuntimeException("Evaluation record not found for id: " + id);
+            }
+
+            EvaluationHistoryRecord record = recordOpt.get();
+
+            if (record.getStatus() == null || !record.getStatus().equals("COMPLETED")) {
+                log.warn("Evaluation not completed yet for id: {}", id);
+                throw new RuntimeException("Evaluation not completed yet for id: " + id);
+            }
+
+            List<AnalyzeResultRecord> analyzeResults = analyzeResultRepository.findByHistoryRecord_Id(id);
+
+            if (analyzeResults.isEmpty()) {
+                log.warn("Analysis result not found for evaluation id: {}", id);
+                throw new RuntimeException("Analysis result not found for evaluation id: " + id);
+            }
+
+            AnalyzeResultRecord analyzeResult = analyzeResults.getFirst();
+
+            FactCheckResultDto result = new FactCheckResultDto();
+            result.setId(String.valueOf(record.getId()));
+            result.setMessage(record.getInputText());
+            result.setCurrentStep(5);
+            result.setAllSteps(5);
+
+            createAnalyzeResult(analyzeResult, result);
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("Error fetching evaluation result for id: {}", id, e);
+            throw new RuntimeException("Error fetching evaluation result: " + e.getMessage());
+        }
     }
 
     @Override
-    public List<FactCheckResultDto> getUserHistory(String userId) {
-        return List.of();
+    public List<FactCheckResultDto> getUserHistory(int userId) {
+        log.info("Fetching user history for userId: {}", userId);
+
+        try {
+            List<EvaluationHistoryRecord> records = evaluationHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId);
+
+            return records.stream()
+                    .filter(record -> "COMPLETED".equals(record.getStatus()))
+                    .map(record -> {
+                        FactCheckResultDto dto = new FactCheckResultDto();
+                        dto.setId(String.valueOf(record.getId()));
+                        dto.setMessage(record.getInputText());
+                        dto.setCurrentStep(5);
+                        dto.setAllSteps(5);
+
+                        try {
+                            List<AnalyzeResultRecord> analyzeResults = analyzeResultRepository.findByHistoryRecord_Id(record.getId());
+                            if (!analyzeResults.isEmpty()) {
+                                createAnalyzeResult(analyzeResults.getFirst(), dto);
+                            }
+                        } catch (Exception e) {
+                            log.warn("Could not fetch analyze result for record id: {}", record.getId(), e);
+                        }
+
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("Error fetching user history for userId: {}", userId, e);
+            throw new RuntimeException("Error fetching user history: " + e.getMessage());
+        }
+    }
+
+    private void createAnalyzeResult(AnalyzeResultRecord analyzeResult, FactCheckResultDto result) {
+        AnalyzeResult analyzeDto = new AnalyzeResult();
+
+        analyzeDto.setText(result.getMessage());
+
+        analyzeDto.setFinalScore(analyzeResult.getFinalScore());
+        analyzeDto.setLabel(analyzeResult.getLabel());
+        analyzeDto.setExplanation(analyzeResult.getExplanation());
+
+        Map<String, ScoredValue> resultsMap = new HashMap<>();
+        if (analyzeResult.getResults() != null) {
+            for (ResultRecord resultRecord : analyzeResult.getResults()) {
+                resultsMap.put(resultRecord.getKey(), resultRecord.getValue());
+            }
+        }
+        analyzeDto.setResults(resultsMap);
+
+        List<Reference> references = new ArrayList<>();
+        if (analyzeResult.getReferences() != null) {
+            references = analyzeResult.getReferences().stream()
+                    .map(ref -> new Reference(ref.getSource(), ref.getPublicationDate(), ref.getLink()))
+                    .collect(Collectors.toList());
+        }
+        analyzeDto.setReferences(references);
+
+        result.setResult(analyzeDto);
     }
 }
