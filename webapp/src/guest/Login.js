@@ -20,6 +20,7 @@ export default function Login({setGuest, setUserToken}) {
     const [isPasswordValid, setIsPasswordValid] = useState(false);
     const [isEmailValid, setIsEmailValid] = useState(false);
 
+    console.log(process.env);
     const handleChange = (e) => {
         if (e.target.name === "password") {
             setIsPasswordValid(validatePassword(e.target.value));

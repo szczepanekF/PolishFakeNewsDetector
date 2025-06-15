@@ -61,6 +61,9 @@ services:
     build:
       context: ./webapp
       dockerfile: Dockerfile
+      args:
+        REACT_APP_AUTH_API: http://localhost/api/auth
+        REACT_APP_LOGIC_API: http://localhost/api/business-logic
     volumes:
       - webapp_data:/usr/share/nginx/html # Output build files to shared volume
     depends_on:
