@@ -10,3 +10,4 @@ WORKDIR /app
 COPY --from=build /app/target/BusinessLogicService*.jar /app/business-logic-service.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar","business-logic-service.jar"]
+CMD []

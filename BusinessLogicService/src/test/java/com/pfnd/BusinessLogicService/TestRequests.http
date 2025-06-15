@@ -1,13 +1,13 @@
 ###
-POST localhost:8080/app/evaluate
+POST localhost/api/business-logic/app/evaluate
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNDI1NDQiLCJlbWFpbEFkZHJlc3MiOiIyNDI1NDRAZWR1LnAubG9kei5wbCIsInVzZXJJZCI6MSwiaWF0IjoxNzQ5MDQ3MzcwLCJleHAiOjEyMDAxNzQ5MDQ3MzcwfQ.AUZmO5GEH5mqX6fx7aaMTMq77uSmkhf2Zb92cTDIn3c
 Content-Type: application/json
 
 {
-  "text": "Dlaczego Polakom i Polkom nie podaje się w szpitalach i przychodniach leków na covid-19 ???  Leki na covid-19:   - Amantadyna,   - Iwermektyna,  - Naproksen,   - Hydroksychlorochina,  - FLUWOKSAMINA?? KURWA!"
+  "text": "Text"
 }
 
 ###
-GET localhost:8080/app/status/1
+GET localhost/api/business-logic/app/status/20
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNDI1NDQiLCJlbWFpbEFkZHJlc3MiOiIyNDI1NDRAZWR1LnAubG9kei5wbCIsInVzZXJJZCI6MSwiaWF0IjoxNzQ5MDQ3MzcwLCJleHAiOjEyMDAxNzQ5MDQ3MzcwfQ.AUZmO5GEH5mqX6fx7aaMTMq77uSmkhf2Zb92cTDIn3c
 Content-Type: application/json

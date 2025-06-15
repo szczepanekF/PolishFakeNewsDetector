@@ -84,9 +84,10 @@ services:
       GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
       MAILING_PASSWORD: ${MAILING_PASSWORD}
       JWT_KEY: ${JWT_KEY}
+      PROFILE: ${PROFILE:-}
     depends_on:
       - userdb
-    # - logstash
+      - logstash
     volumes:
       - auth_data:/auth
 
@@ -99,7 +100,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - userdb_data:/data/db
+      - userdb_data:/var/lib/postgresql/data
 
   historydb:
     image: postgres:15
@@ -110,7 +111,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - historydb_data:/data/db
+      - historydb_data:/var/lib/postgresql/data
 
   business-logic:
     build:
@@ -124,11 +125,12 @@ services:
       LOGSTASH_URL: logstash:5000
       BROKER_URI: amqp://user:password@rabbitmq:5672//
       JWT_KEY: ${JWT_KEY}
+      PROFILE: ${PROFILE:-}
     depends_on:
       - historydb
       - rabbitmq
       - redis
-    #      - logstash
+      - logstash
     volumes:
       - business_logic_data:/business-logic
 

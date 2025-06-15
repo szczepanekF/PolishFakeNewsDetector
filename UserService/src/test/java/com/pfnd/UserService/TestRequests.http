@@ -1,8 +1,8 @@
-POST http://localhost:8080/app/user/register
+POST http://localhost/api/auth/app/user/register
 Content-Type: application/json
 
 {
-  "email": "242544@edu.p.lodz.pl",
+  "email": "user_test@test.mail",
   "password": "test"
 }
 
@@ -11,7 +11,7 @@ GET http://localhost:8080/app/user
 
 ###
 
-POST http://localhost:8080/app/user/login
+POST http://localhost/api/auth/app/user/login
 Content-Type: application/json
 
 {
