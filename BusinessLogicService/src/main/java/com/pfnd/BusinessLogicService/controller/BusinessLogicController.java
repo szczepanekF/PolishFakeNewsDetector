@@ -1,14 +1,14 @@
 package com.pfnd.BusinessLogicService.controller;
 
 
-import com.pfnd.BusinessLogicService.model.dto.EvaluationHistoryDto;
-import com.pfnd.BusinessLogicService.model.dto.FactCheckRequestDto;
+import com.pfnd.BusinessLogicService.model.dto.*;
 import com.pfnd.BusinessLogicService.model.messages.Response;
 import com.pfnd.BusinessLogicService.service.BusinessLogicService;
 import com.pfnd.BusinessLogicService.service.JwtTokenDecoder;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/app")
@@ -50,22 +50,98 @@ public class BusinessLogicController {
     }
 
     @GetMapping("/status/{id}")
-    public ResponseEntity<Response<?>> getStatus(@PathVariable long id) {
+    @Operation(summary = "Get evaluation status",
+            description = "Retrieve current status of fact-check evaluation")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved evaluation status"),
+            @ApiResponse(responseCode = "404", description = "Evaluation record not found"),
+            @ApiResponse(responseCode = "500", description = "Error during status retrieval")
+    })
+    public ResponseEntity<Response<?>> getStatus(
+            @PathVariable @Parameter(description = "Evaluation ID") long id) {
 
-        return ResponseEntity.ok(new Response<>(businessLogicService.getEvaluationStatus(id)));
+        log.info("Retrieving status for evaluation ID: {}", id);
+
+        try {
+            FactCheckResultDto status = businessLogicService.getEvaluationStatus(id);
+            return ResponseEntity.ok(new Response<>(status));
+        } catch (RuntimeException e) {
+            log.error("Error retrieving status for evaluation ID {}: {}", id, e.getMessage());
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(404)
+                        .body(new Response<>("Evaluation record not found"));
+            }
+            return ResponseEntity.status(500)
+                    .body(new Response<>("Error retrieving status: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/result/{id}")
-    public ResponseEntity<Response<?>> getResult(@PathVariable UUID id) {
-        return null;
+    @Operation(summary = "Get evaluation result",
+            description = "Retrieve complete fact-check result including sources and analysis")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved evaluation result"),
+            @ApiResponse(responseCode = "404", description = "Evaluation record not found"),
+            @ApiResponse(responseCode = "202", description = "Evaluation still in progress"),
+            @ApiResponse(responseCode = "500", description = "Error during result retrieval")
+    })
+    public ResponseEntity<Response<?>> getResult(
+            @PathVariable @Parameter(description = "Evaluation ID") int id) {
+
+        log.info("Retrieving result for evaluation ID: {}", id);
+
+        try {
+            FactCheckResultDto result = businessLogicService.getEvaluationResult(id);
+            return ResponseEntity.ok(new Response<>(result));
+        } catch (RuntimeException e) {
+            log.error("Error retrieving result for evaluation ID {}: {}", id, e.getMessage());
+
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(404)
+                        .body(new Response<>("Evaluation record not found"));
+            } else if (e.getMessage().contains("not completed")) {
+                return ResponseEntity.status(202)
+                        .body(new Response<>("Evaluation still in progress"));
+            }
+
+            return ResponseEntity.status(500)
+                    .body(new Response<>("Error retrieving result: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/history")
-    public ResponseEntity<Response<?>> getUserHistory(@RequestHeader("Authorization") String token) {
+    @Operation(summary = "Get user evaluation history",
+            description = "Retrieve all fact-check evaluations for the authenticated user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved user history"),
+            @ApiResponse(responseCode = "400", description = "Error during token decoding or invalid user ID"),
+            @ApiResponse(responseCode = "500", description = "Error during history retrieval")
+    })
+    public ResponseEntity<Response<?>> getUserHistory(
+            @RequestHeader("Authorization")
+            @Parameter(description = "JWT Bearer token") String token) {
 
-        //TODO get userId from token using UserService decoding token api
-        return null;
+        log.info("Retrieving user history");
+
+        try {
+            Claims claims = decoder.decode(token);
+            int userId = Integer.parseInt(claims.get("userId").toString());
+
+            List<FactCheckResultDto> history = businessLogicService.getUserHistory(userId);
+
+            log.info("Successfully retrieved {} history records for user: {}",
+                    history.size(), userId);
+
+            return ResponseEntity.ok(new Response<>(history));
+
+        } catch (JwtException e) {
+            log.error("JWT token decoding error: {}", e.getMessage());
+            return ResponseEntity.status(400)
+                    .body(new Response<>("Invalid or expired token: " + e.getMessage()));
+        } catch (RuntimeException e) {
+            log.error("Error retrieving user history: {}", e.getMessage());
+            return ResponseEntity.status(500)
+                    .body(new Response<>("Error retrieving history: " + e.getMessage()));
+        }
     }
-
-    // TODO
 }

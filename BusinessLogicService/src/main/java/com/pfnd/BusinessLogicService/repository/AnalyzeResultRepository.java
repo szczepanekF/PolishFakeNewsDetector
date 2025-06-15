@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface AnalyzeResultRepository extends JpaRepository<AnalyzeResultRecord, Integer> {
     List<AnalyzeResultRecord> findByHistoryRecord_Id(int historyId);
-
 }

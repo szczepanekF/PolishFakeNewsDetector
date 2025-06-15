@@ -12,7 +12,7 @@ import com.pfnd.BusinessLogicService.model.postgresql.EvaluationHistoryRecord;
 import com.pfnd.BusinessLogicService.model.postgresql.ReferenceRecord;
 import com.pfnd.BusinessLogicService.model.postgresql.ResultRecord;
 import com.pfnd.BusinessLogicService.repository.AnalyzeResultRepository;
-import com.pfnd.BusinessLogicService.repository.EvalutationHistoryRepository;
+import com.pfnd.BusinessLogicService.repository.EvaluationHistoryRepository;
 import com.pfnd.BusinessLogicService.service.FactCheckRequestHandler;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
 
-    private final EvalutationHistoryRepository evalutationHistoryRepository;
+    private final EvaluationHistoryRepository evaluationHistoryRepository;
     private final AnalyzeResultRepository analyzeResultRepository;
 
     private final RabbitTemplate rabbitTemplate;
@@ -111,7 +111,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
 
     private void updateHistoryRecord(FactCheckCommand request, FactCheckResultDto result) {
         EvaluationHistoryRecord record =
-                evalutationHistoryRepository.findById(request.historyId())
+                evaluationHistoryRepository.findById(request.historyId())
                                             .orElseThrow(
                                                     () -> new RuntimeException(Messages.DOES_NOT_EXIST));
         List<AnalyzeResultRecord> resultList = analyzeResultRepository.findByHistoryRecord_Id(request.historyId());
