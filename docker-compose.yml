@@ -45,13 +45,14 @@ services:
     container_name: pfnd-nginx
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/conf:/etc/nginx/conf.d
-      - nginx_www_data:/var/www/html
-      - nginx_logs_data:/var/log/nginx
+      - ./nginx/conf/default.conf:/etc/nginx/nginx.conf:ro
+      - pfnd2025_data:/var/www/html
+      - pfnd2025_data:/var/log/nginx
     depends_on:
       - webapp
+      - auth
+      - business-logic
 
   webapp:
     container_name: pfnd-webapp
@@ -64,12 +65,9 @@ services:
       - business-logic
       - auth
   auth:
-    container_name: pfnd-auth
     build:
       context: ./UserService
       dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -108,12 +106,9 @@ services:
       - historydb_data:/data/db
 
   business-logic:
-    container_name: pfnd-business-logic
     build:
       context: ./BusinessLogicService
       dockerfile: Dockerfile
-    ports:
-      - "8081:8080"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
