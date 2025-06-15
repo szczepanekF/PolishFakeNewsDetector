@@ -56,5 +56,4 @@ def scrap_data():
     # print(len(data))
     save_to_db(conn, data)
 
-
 # scrap_data()

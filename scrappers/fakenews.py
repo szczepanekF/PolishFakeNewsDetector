@@ -45,16 +45,18 @@ def scrap_pages(driver:webdriver.Edge, claims:list[tuple], last_scrapped_timesta
     else:
         stop_condition = lambda page_number: True
 
-    while stop_condition:
+    while stop_condition(page_number):
         next_button = driver.find_element(By.CLASS_NAME, 'next')
         articles = driver.find_elements(By.CLASS_NAME, 'news-post')
         finish = collect_adrticles_data(articles, claims, last_scrapped_timestamp)
         if finish:
             return
         driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' });", next_button)
-        time.sleep(2)
+        time.sleep(4)
         next_button.click()
-        time.sleep(2)
+        page_number += 1
+        time.sleep(4)
+
 
 def scrap_subsites(driver:webdriver.Edge, claims:list[tuple], last_scrapped_timestamp:float):
     source = "https://fakenews.pl/"
