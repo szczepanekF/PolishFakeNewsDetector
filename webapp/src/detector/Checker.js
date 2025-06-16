@@ -41,8 +41,8 @@ export default function Checker({userToken, setGuest}){
             );
 
             // Retrieve the token from the response's containedObject
-            const id = response.data.containedObject.id;
-            const {currentStep, allSteps} = response.data.containedObject;
+            const id = response.data.contained_object.id;
+            const {currentStep, allSteps} = response.data.contained_object;
             // Save the token to local storage
             setEvaluationId(id);
             setProgress({currentStep, allSteps});
@@ -70,14 +70,14 @@ export default function Checker({userToken, setGuest}){
         const interval = setInterval(async () => {
             try {
                 const res = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/status/${evaluationId}`);
-                const { currentStep, allSteps } = res.data.containedObject;
+                const { currentStep, allSteps } = res.data.contained_object;
                 setProgress({ currentStep, allSteps });
 
                 if (currentStep === allSteps) {
                     clearInterval(interval);
 
                     const resultRes = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/result/${evaluationId}`);
-                    setResult(resultRes.data.containedObject);
+                    setResult(resultRes.data.contained_object);
                     setIsLoading(false);
                 }
             } catch (err) {
