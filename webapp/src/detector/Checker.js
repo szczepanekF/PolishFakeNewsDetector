@@ -69,7 +69,13 @@ export default function Checker({userToken, setGuest}){
 
         const interval = setInterval(async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/status/${evaluationId}`);
+                const res = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/status/${evaluationId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${userToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
                 const currentStep = res.data.contained_object.current_step;
                 const allSteps = res.data.contained_object.all_steps;
                 setProgress({ currentStep, allSteps });
@@ -77,7 +83,13 @@ export default function Checker({userToken, setGuest}){
                 if (currentStep === allSteps) {
                     clearInterval(interval);
 
-                    const resultRes = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/result/${evaluationId}`);
+                    const resultRes = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/result/${evaluationId}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${userToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
                     setResult(resultRes.data.contained_object);
                     setIsLoading(false);
                 }
