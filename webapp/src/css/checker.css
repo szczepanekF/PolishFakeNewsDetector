@@ -1,0 +1,35 @@
+/*!****************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/scss/checker.scss ***!
+  \****************************************************************************************************************/
+.checker #textToCheck {
+  min-height: 100px;
+}
+.checker .answer-container {
+  width: 100%;
+}
+.checker .answer-container .load-bar {
+  height: 4px;
+  background-color: var(--detail-color);
+  border-radius: 4px;
+  padding: 0;
+}
+.checker .answer-container .load-bar .progress {
+  background-color: var(--primary-color);
+  height: 100%;
+  border-radius: 4px;
+}
+.checker .answer-container .answer-row {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  flex-direction: row;
+  gap: 4px;
+  width: 100%;
+  padding: 4px 8px;
+}
+.checker .answer-container .answer-row .label {
+  font-weight: bold;
+}
+.checker .answer-container .answer-row .value {
+  font-weight: normal;
+}

@@ -1,0 +1,39 @@
+.checker{
+  #textToCheck{
+    min-height: 100px;
+  }
+  .answer-container{
+    width: 100%;
+
+    .load-bar{
+      height: 4px;
+      background-color: var(--detail-color);
+      border-radius: 4px;
+      padding: 0;
+      .progress{
+        background-color: var(--primary-color);
+        height: 100%;
+        border-radius: 4px;
+      }
+    }
+
+    .answer-row{
+      display: flex;
+      align-items: center;
+      justify-content: start;
+      flex-direction: row;
+      gap: 4px;
+      width: 100%;
+      padding: 4px 8px;
+
+      .label{
+        font-weight: bold;
+      }
+      .value{
+        font-weight: normal;
+      }
+    }
+  }
+
+
+}

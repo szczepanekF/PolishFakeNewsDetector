@@ -47,7 +47,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx/conf/default.conf:/etc/nginx/nginx.conf:ro
-      - nginx_www_data:/var/www/html
+      - webapp_data:/usr/share/nginx/html
       - nginx_logs_data:/var/log/nginx
     depends_on:
       - webapp
@@ -56,11 +56,16 @@ services:
 
   webapp:
     container_name: pfnd-webapp
+    expose:
+      - "80"
     build:
       context: ./webapp
       dockerfile: Dockerfile
+      args:
+        REACT_APP_AUTH_API: http://localhost/api/auth
+        REACT_APP_LOGIC_API: http://localhost/api/business-logic
     volumes:
-      - webapp_data:/webapp/build # Output build files to shared volume
+      - webapp_data:/usr/share/nginx/html # Output build files to shared volume
     depends_on:
       - business-logic
       - auth
@@ -68,6 +73,8 @@ services:
     build:
       context: ./UserService
       dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

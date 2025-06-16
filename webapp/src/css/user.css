@@ -1,0 +1,13 @@
+/*!*************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/scss/user.scss ***!
+  \*************************************************************************************************************/
+.password-reset-view .card {
+  width: 95% !important;
+}
+.password-reset-view .label-col {
+  padding: 0 !important;
+}
+.password-reset-view #newPassword,
+.password-reset-view #newPasswordRepeat {
+  border-radius: 0.375rem 0 0 0.375rem;
+}

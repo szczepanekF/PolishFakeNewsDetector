@@ -3,20 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@iconscout/react-unicons": "^2.2.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.9.0",
+    "bootstrap": "^5.3.6",
     "react": "^19.1.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build-scss": "webpack --config webpack.scss.config.js --mode production",
+    "watch-scss": "webpack --config webpack.scss.config.js --watch --mode development"
   },
   "eslintConfig": {
     "extends": [
@@ -35,5 +44,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "css-loader": "^7.1.2",
+    "mini-css-extract-plugin": "^2.9.2",
+    "sass": "^1.89.2",
+    "sass-loader": "^16.0.5",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
   }
 }
