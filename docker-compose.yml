@@ -21,11 +21,13 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_API_URL=${OPENAI_API_URL}
       - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
+      - LOGSTASH_URL=logstash:5000
     depends_on:
       - rabbitmq
+      - logstash
       - evaluation-sources-db
     volumes:
-      - ml_evaluation_worker_data:/ml-evaluation-worker
+      - ml-evaluation-worker-models:/app/models
     deploy:
       replicas: 3
 
@@ -175,7 +177,7 @@ volumes:
   evaluation_sources_db_data:
   elasticsearch_data:
   rabbitmq_data:
-  ml_evaluation_worker_data:
+  ml-evaluation-worker-models:
   auth_data:
   business_logic_data:
   nginx_www_data:

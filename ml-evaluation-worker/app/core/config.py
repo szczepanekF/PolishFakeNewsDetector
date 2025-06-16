@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     OPENAI_MODEL_NAME: str
 
+    LOGSTASH_URL: str
+
 
 settings = Settings()
 

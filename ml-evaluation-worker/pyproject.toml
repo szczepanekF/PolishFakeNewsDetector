@@ -24,6 +24,7 @@ psycopg2-binary = "^2.9"
 pgvector = "^0.4.1"
 sentence-transformers = "^4.1.0"
 openai = "^1.86.0"
+python-logstash = "^0.4.8"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.3.0"
