@@ -10,22 +10,30 @@ import { toast } from "react-toastify";
 export default function ChangePassword({ userId = null, isSeparate = true }) {
     const navigate = useNavigate();
     const location = useLocation();
-    if (isSeparate) {
-        const parts = location.pathname.split("/");
-        userId = parts[2];
-    }
+    // if (isSeparate) {
+    //     const parts = location.pathname.split("/");
+    //     userId = parts[2];
+    // }
 
     const [changePasswordForm, setChangePasswordForm] = useState({
         newPassword: "",
         newPasswordRepeat: "",
-        userId: userId,
     });
+    const [token, setToken] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isPasswordRepeatVisible, setIsPasswordRepeatVisible] = useState(false);
     const [isPasswordValid, setIsPasswordValid] = useState(false);
     const [isRepeatPasswordValid, setIsRepeatPasswordValid] = useState(false);
     const [showPassMessage, setShowPassMessage] = useState(false);
     const [showRepPassMessage, setShowRepPassMessage] = useState(false);
+
+
+    useEffect(() => {
+            const queryParams = new URLSearchParams(location.search);
+            const tokenParam = queryParams.get("token");
+            setToken(tokenParam);
+
+    }, [location, navigate, setToken]);
 
     const setNewPassword = async (e) => {
         e.preventDefault();
@@ -40,24 +48,33 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
             return;
         }
         try {
-            const body = {
-                userId: Number(changePasswordForm.userId),
-                newPassword: changePasswordForm.newPassword,
-            };
+
+            const parts = location.pathname.split("/");
+            const token = parts[parts.length - 1].replace("token=", "");
             const response = await axios.post(
-                `${process.env.REACT_APP_AUTH_API}/changePassword`,
-                body
+                `${process.env.REACT_APP_AUTH_API}/app/user/changePassword?token=${token}&newPassword=${changePasswordForm.newPassword}`,
+                {},
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
             );
             if (response.status === 200) {
                 location.pathname = "/login";
                 navigate("/login");
+                window.location.reload();
             }
         } catch (error) {
             console.error("Error while resetting password: ", error);
-            toast.error(
-                "Wystąpił bład przy zmianie hasła",
-                "Błąd resetu hasła",
-                3000
+            await toast.error(
+                error.response
+                    ? error.response.data.error
+                        ? error.response.data.error
+                        : "Wystąpił błąd przy resecie hasła."
+                    : "Wystąpił błąd przy resecie hasła",{
+                    autoClose: 3000,
+                }
             );
         }
     };
@@ -108,13 +125,11 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                 </div>
                 <div className="card-body">
                     <form id="change-password-form">
-                        <div className="row">
-                            <div className="col-md-3 label-col">
+                        <div className="form-row password-input-container">
                                 <label className="input-label" htmlFor="newPassword">
                                     Nowe hasło
                                 </label>
-                            </div>
-                            <div className="col-md-8" style={{ paddingRight: 0 }} data-testid="newpassword">
+                            <div className="form-validation-input">
                                 <input
                                     id="newPassword"
                                     name="newPassword" // Add name attribute
@@ -138,7 +153,6 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                                             : "Nieprawidłowe hasło, zasady: 8-20 znaków, jedna wielka litera, jedna mała litera, dodatkowy znak i liczba")}
                                 </p>
                             </div>
-                            <div className="col-md-1 show-password">
                                 <div
                                     className="show-password-btn"
                                     onClick={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -149,16 +163,12 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                                     ) : (
                                         <Icons.FiEyeOff />
                                     )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="row">
-                            <div className="col-md-3 label-col">
+                                </div></div>
+                        <div className="form-row password-input-container">
                                 <label className="input-label" htmlFor="newPasswordRepeat">
                                     Powtórz nowe hasło
                                 </label>
-                            </div>
-                            <div className="col-md-8" style={{ paddingRight: 0 }}>
+                            <div className="form-validation-input">
                                 <input
                                     id="newPasswordRepeat"
                                     name="newPasswordRepeat" // Add name attribute
@@ -182,7 +192,6 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                                             : "Nieprawidłowe hasło, zasady: 8-20 znaków, jedna wielka litera, jedna mała litera, dodatkowy znak i liczba")}
                                 </p>
                             </div>
-                            <div className="col-md-1 show-password">
                                 <div
                                     className="show-password-btn"
                                     onClick={() =>
@@ -195,10 +204,8 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                                             <Icons.FiEyeOff />
                                         )}
                                 </div>
-                            </div>
                         </div>
-                        <div className="row">
-                            <div className="col-md-12">
+                        <div className="form-row">
                                 <div className="btn-container float-right">
                                     <button
                                         className="btn submit-btn btn-success"
@@ -207,7 +214,6 @@ export default function ChangePassword({ userId = null, isSeparate = true }) {
                                         Zmień hasło
                                     </button>
                                 </div>
-                            </div>
                         </div>
                     </form>
                 </div>

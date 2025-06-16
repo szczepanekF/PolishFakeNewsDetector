@@ -122,24 +122,6 @@ export default function Login({setGuest, setUserToken}) {
             setUserToken(token);
             setGuest(false);
 
-            // try {
-            //     // Make a POST request to decodeJWT endpoint with the token
-            //     const response = await axios.post(
-            //         "http://localhost:8080/app/auth/decodeJWT",
-            //         token
-            //     );
-            //     localStorage.setItem(
-            //         "springUserId",
-            //         response.data.containedObject.SpringUserId
-            //     );
-            // } catch (error) {
-            //     console.error("Error decoding JWT:", error);
-            //     toast.error(
-            //         "Błąd odczytu JWT. Proszę spróbować później",{
-            //             autoClose: 3000,
-            //         }
-            //     );
-            // }
 
             // Reset form data after successful login
             setLoginForm({

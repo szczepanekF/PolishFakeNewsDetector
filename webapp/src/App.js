@@ -50,7 +50,7 @@ function App() {
                 {/*<Route path="/register" element={<Register />} />*/}
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route
-                    path="/change-password/:userId"
+                    path="/change-password/:token"
                     element={<ChangePassword />}
                 />
                 <Route path="/check" element={<Checker userToken={userToken} setGuest={setGuest} />} />

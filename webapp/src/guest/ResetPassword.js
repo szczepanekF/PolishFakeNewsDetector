@@ -50,19 +50,20 @@ export default function ResetPassword() {
         try {
             // Make a POST request to decodeJWT endpoint with the token
             const response = await axios.post(
-                `${process.env.REACT_APP_AUTH_API}/app/user/passwordRecovery`,
-                {"emailAddress": emailAddress}
+                `${process.env.REACT_APP_AUTH_API}/app/user/passwordRecovery?emailAddress=${encodeURIComponent(emailAddress)}`,
+                {}, // empty body
+                {
+                    headers: { "Content-Type": "application/json" }
+                }
             );
-            if (response.status === 200) {
-                const message = response.data.containedObject;
-                toast.success(message);
+                await toast.success(response.data.contained_object);
                 // location.pathname = `/change-password/${springUserId}`;
                 // navigate(`/change-password/${springUserId}`);
-            }
+
         } catch (error) {
             console.error("Error while email and token pair validation:", error);
             toast.error(
-                "Wystąpił błąd przy walidowaniu tokenu.",{
+                "Wystąpił błąd przy wysyłaniu maila.",{
                     autoClose: 3000,
                 }
             );
@@ -80,13 +81,14 @@ export default function ResetPassword() {
                 <div className="card-body">
                     <form>
                         <div className="form-row">
-                                <label className="input-label" htmlFor="enterUsername">
+                                <label className="input-label" htmlFor="enterEmail">
                                     E&#8209;mail
                                 </label>
                             <div className={"form-validation-input"}>
                                 <input
-                                    id="enterUsername"
+                                    id="enterEmail"
                                     className="form-control"
+                                    name={"emailAddress"}
                                     type="email"
                                     placeholder="E-mail..."
                                     data-testid="emailinput"
