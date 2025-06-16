@@ -26,10 +26,16 @@ export default function Checker({userToken, setGuest}){
         if(checkForm.text.trim().length > 0){
         try {
             const response = await axios.post(
-                `${process.env.REACT_APP_LOGIC_API}/evaluate`,
-                checkForm,
+                `${process.env.REACT_APP_LOGIC_API}/app/evaluate`,
                 {
-                'Authorization': `Bearer ${userToken}`, 'Content-Type': 'application/json'}
+                    "text": checkForm.text
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
 
             // Retrieve the token from the response's containedObject
