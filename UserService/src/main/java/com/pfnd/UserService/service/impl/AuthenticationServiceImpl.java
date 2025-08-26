@@ -144,16 +144,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             User user = resetToken.getUser();
 
-//            // You may want to validate newPassword format here (e.g., length, complexity)
 //            if (!isValidPassword(newPassword)) {
 //                throw new InvalidPasswordException("Password does not meet security requirements");
 //            }
 
-            // Update and save the new password
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
 
-            // Invalidate the token after use
             passwordRecoveryTokenRepository.delete(resetToken);
 
         } catch (InvalidPasswordException e) {

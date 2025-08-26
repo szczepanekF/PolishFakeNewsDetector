@@ -18,10 +18,10 @@ public class Subscription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @ManyToOne          //TODO verify if that works XD
+    @ManyToOne
     private User user;
     private Date startDate;
     private Date expirationDate;
-    private String subscriptionType; //TODO implement enum type for subscriptions and add custom authentication for them
+    private String subscriptionType;
     private String pfndApiKey;
 }

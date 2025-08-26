@@ -9,7 +9,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -50,7 +49,7 @@ public class FactCheckRequestListenerImpl {
             int totalSteps = 9;
 
             for (int i = 1; i <= totalSteps; i++) {
-                FactCheckResultDto result = prepareMockResult(inputText, correlationId, i, totalSteps);
+                FactCheckProgressDto result = prepareMockResult(inputText, correlationId, i, totalSteps);
                 byte[] replyBytes = objectMapper.writeValueAsBytes(result);
 
                 MessageProperties replyProps = new MessageProperties();
@@ -76,14 +75,14 @@ public class FactCheckRequestListenerImpl {
     private static List<String> messages = List.of("Started", "Text preparation", "Processing", "Sentiment analysis",
             "NLP", "Looking for reference sources", "Preparing response", "Success");
 
-    private FactCheckResultDto prepareMockResult(String inputText, String correlationId, int currentStep, int allSteps) {
+    private FactCheckProgressDto prepareMockResult(String inputText, String correlationId, int currentStep, int allSteps) {
         Reference ref = new Reference(55,"test.source", new Date(), "url");
         ScoredValue sample = new ScoredValue("sentiment", 0.5f);
         AnalyzeResult analyzeRes =
                 new AnalyzeResult(inputText, 0.9f, ClassificationLabel.UNCLASSIFIED, "explanation",
                         Map.of("test_metric", sample), List.of(ref));
 
-        return new FactCheckResultDto(correlationId, messages.get((currentStep - 1) % messages.size()), currentStep,
+        return new FactCheckProgressDto(correlationId, messages.get((currentStep - 1) % messages.size()), currentStep,
                 allSteps,
                 analyzeRes);
     }

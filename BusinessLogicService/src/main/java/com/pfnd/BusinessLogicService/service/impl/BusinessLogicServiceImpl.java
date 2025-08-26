@@ -1,6 +1,6 @@
 package com.pfnd.BusinessLogicService.service.impl;
 
-import com.pfnd.BusinessLogicService.Messages;
+import com.pfnd.BusinessLogicService.utils.Messages;
 import com.pfnd.BusinessLogicService.model.dto.*;
 import com.pfnd.BusinessLogicService.model.messages.FactCheckCommand;
 import com.pfnd.BusinessLogicService.model.postgresql.AnalyzeResultRecord;
@@ -42,16 +42,13 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
     }
 
     @Override
-    public FactCheckResultDto getEvaluationStatus(long id) {
-        // TODO change this getEvaluationResult method return EvaluationHistoryDto
-
-        Optional<FactCheckResultDto> cacheResult = factCheckRequestHandler.getInterimResult(id);
+    public FactCheckProgressDto getEvaluationStatus(long id) {
+        Optional<FactCheckProgressDto> cacheResult = factCheckRequestHandler.getInterimResult(id);
 
         if (cacheResult.isPresent()) {
             log.debug("Found evaluation status in cache for id: {}", id);
             return cacheResult.get();
         }
-
         log.info("Cache miss for id: {}, checking database", id);
 
         try {
@@ -64,7 +61,7 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
 
             AnalyzeResultRecord record = recordOpt.get();
 
-            FactCheckResultDto dto = new FactCheckResultDto();
+            FactCheckProgressDto dto = new FactCheckProgressDto();
             dto.setId(String.valueOf(record.getHistoryRecord().getId()));
             dto.setMessage(record.getHistoryRecord().getStatus());
             dto.setCurrentStep(record.getHistoryRecord().getSteps());
@@ -78,9 +75,7 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
     }
 
     @Override
-    public FactCheckResultDto getEvaluationResult(int id) {
-        // TODO change this getEvaluationResult method return EvaluationHistoryDto
-
+    public FactCheckProgressDto getEvaluationResult(int id) {
         log.info("Fetching evaluation result for id: {}", id);
 
         Optional<EvaluationHistoryRecord> recordOpt = evaluationHistoryRepository.findById(id);
@@ -106,7 +101,7 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
 
         AnalyzeResultRecord analyzeResult = analyzeResults.get();
 
-        FactCheckResultDto result = new FactCheckResultDto();
+        FactCheckProgressDto result = new FactCheckProgressDto();
         result.setId(String.valueOf(record.getId()));
         result.setMessage(record.getInputText());
         result.setCurrentStep(record.getSteps());
@@ -117,20 +112,18 @@ public class BusinessLogicServiceImpl implements BusinessLogicService {
     }
 
     @Override
-    public List<FactCheckResultDto> getUserHistory(int userId) {
-        // TODO change this getUserHistory method return EvaluationHistoryDto
-
+    public List<FactCheckProgressDto> getUserHistory(int userId) {
         log.info("Fetching user history for userId: {}", userId);
         try {
 
-            List<EvaluationHistoryRecord> records = evaluationHistoryRepository.findByUserIdOrderByCreatedAtDesc(
-                    userId);
+            List<EvaluationHistoryRecord> records =
+                    evaluationHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
 
             return records.stream()
                           .filter(record -> "COMPLETED".equals(record.getStatus()))
                           .map(record -> {
-                              FactCheckResultDto dto = new FactCheckResultDto();
+                              FactCheckProgressDto dto = new FactCheckProgressDto();
                               dto.setId(String.valueOf(record.getId()));
                               dto.setMessage(record.getInputText());
                               dto.setCurrentStep(5);

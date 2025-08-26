@@ -18,7 +18,6 @@ public class RabbitMqConfig {
 
     @Bean
     public Queue analyzeTasksQueue() {
-        // Declare the queue so it's created if it doesn't exist
-        return new Queue("analyze_tasks", true); // durable=true
+        return new Queue("analyze_tasks", true);
     }
 }

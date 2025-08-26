@@ -24,7 +24,7 @@ public class Payment {
     private Date startDate;
     private Date expirationDate;
     private String status;
-    @ManyToOne          //TODO verify if that works XD
+    @ManyToOne
     private Subscription subscription;
     private String paymentApiKey;
 }

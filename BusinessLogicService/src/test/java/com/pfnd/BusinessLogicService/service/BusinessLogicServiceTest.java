@@ -95,7 +95,7 @@ public class BusinessLogicServiceTest {
 
         when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(Optional.of(analyzeRecord));
 
-        FactCheckResultDto result = businessLogicService.getEvaluationStatus(123L);
+        FactCheckProgressDto result = businessLogicService.getEvaluationStatus(123L);
 
         assertEquals("123", result.getId());
         assertEquals(record.getStatus(), result.getMessage());
@@ -106,13 +106,13 @@ public class BusinessLogicServiceTest {
 
     @Test
     void shouldGetEvaluationStatusFromCache() {
-        FactCheckResultDto cachedResult = new FactCheckResultDto();
+        FactCheckProgressDto cachedResult = new FactCheckProgressDto();
         cachedResult.setId("123");
         cachedResult.setMessage("cached text");
 
         when(factCheckRequestHandler.getInterimResult(123L)).thenReturn(Optional.of(cachedResult));
 
-        FactCheckResultDto result = businessLogicService.getEvaluationStatus(123L);
+        FactCheckProgressDto result = businessLogicService.getEvaluationStatus(123L);
 
         assertEquals("123", result.getId());
         assertEquals("cached text", result.getMessage());
@@ -158,7 +158,7 @@ public class BusinessLogicServiceTest {
         when(evaluationHistoryRepository.findById(123)).thenReturn(Optional.of(record));
         when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(Optional.of(analyzeRecord));
 
-        FactCheckResultDto result = businessLogicService.getEvaluationResult(123);
+        FactCheckProgressDto result = businessLogicService.getEvaluationResult(123);
 
         assertEquals("123", result.getId());
         assertEquals("test text", result.getMessage());
@@ -304,11 +304,11 @@ public class BusinessLogicServiceTest {
         when(analyzeResultRepository.findByHistoryRecord_Id(124)).thenReturn(Optional.of(analyzeRecord2));
         when(analyzeResultRepository.findByHistoryRecord_Id(125)).thenReturn(Optional.of(analyzeRecord3));
 
-        List<FactCheckResultDto> result = businessLogicService.getUserHistory(42);
+        List<FactCheckProgressDto> result = businessLogicService.getUserHistory(42);
 
         assertEquals(3, result.size());
 
-        FactCheckResultDto completed = result.getFirst();
+        FactCheckProgressDto completed = result.getFirst();
         assertEquals("123", completed.getId());
         assertEquals("completed text", completed.getMessage());
         assertEquals(5, completed.getCurrentStep());
@@ -337,7 +337,7 @@ public class BusinessLogicServiceTest {
         assertEquals("https://example.com", reference.getLink());
         assertNotNull(reference.getPublicationDate());
 
-        FactCheckResultDto second = result.get(1);
+        FactCheckProgressDto second = result.get(1);
         assertEquals("124", second.getId());
         assertEquals("second completed text", second.getMessage());
         assertEquals(5, second.getCurrentStep());
@@ -356,7 +356,7 @@ public class BusinessLogicServiceTest {
         assertNotNull(secondAnalyze.getReferences());
         assertEquals(1, secondAnalyze.getReferences().size());
 
-        FactCheckResultDto third = result.get(2);
+        FactCheckProgressDto third = result.get(2);
         assertEquals("125", third.getId());
         assertEquals("third completed text", third.getMessage());
         assertEquals(5, third.getCurrentStep());
@@ -386,7 +386,7 @@ public class BusinessLogicServiceTest {
     void shouldGetEmptyUserHistory() {
         when(evaluationHistoryRepository.findByUserIdOrderByCreatedAtDesc(42)).thenReturn(List.of());
 
-        List<FactCheckResultDto> result = businessLogicService.getUserHistory(42);
+        List<FactCheckProgressDto> result = businessLogicService.getUserHistory(42);
 
         assertEquals(0, result.size());
         verify(evaluationHistoryRepository, times(1)).findByUserIdOrderByCreatedAtDesc(42);
@@ -414,10 +414,10 @@ public class BusinessLogicServiceTest {
         when(evaluationHistoryRepository.findByUserIdOrderByCreatedAtDesc(42)).thenReturn(List.of(completedRecord));
         when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenThrow(new RuntimeException("Analysis error"));
 
-        List<FactCheckResultDto> result = businessLogicService.getUserHistory(42);
+        List<FactCheckProgressDto> result = businessLogicService.getUserHistory(42);
 
         assertEquals(1, result.size());
-        FactCheckResultDto dto = result.getFirst();
+        FactCheckProgressDto dto = result.getFirst();
         assertEquals("123", dto.getId());
         assertEquals(5, dto.getCurrentStep());
         assertEquals(5, dto.getAllSteps());

@@ -15,5 +15,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query(value = "SELECT k FROM User k")
     List<User> retrieveAll();
-
 }

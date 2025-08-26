@@ -110,7 +110,7 @@ public class BusinessLogicControllerTest {
 
     @Test
     public void testGetStatusSuccess() throws Exception {
-        FactCheckResultDto dto = new FactCheckResultDto();
+        FactCheckProgressDto dto = new FactCheckProgressDto();
         dto.setId("123");
         dto.setMessage("sample text");
         dto.setCurrentStep(5);
@@ -155,7 +155,7 @@ public class BusinessLogicControllerTest {
 
     @Test
     public void testGetResultSuccess() throws Exception {
-        FactCheckResultDto resultDto = new FactCheckResultDto();
+        FactCheckProgressDto resultDto = new FactCheckProgressDto();
         resultDto.setId("123");
         resultDto.setMessage("sample text");
         resultDto.setCurrentStep(5);
@@ -231,15 +231,15 @@ public class BusinessLogicControllerTest {
 
     @Test
     public void testGetUserHistorySuccess() throws Exception {
-        FactCheckResultDto result1 = new FactCheckResultDto();
+        FactCheckProgressDto result1 = new FactCheckProgressDto();
         result1.setId("123");
         result1.setMessage("first text");
 
-        FactCheckResultDto result2 = new FactCheckResultDto();
+        FactCheckProgressDto result2 = new FactCheckProgressDto();
         result2.setId("124");
         result2.setMessage("second text");
 
-        List<FactCheckResultDto> history = Arrays.asList(result1, result2);
+        List<FactCheckProgressDto> history = Arrays.asList(result1, result2);
 
         when(service.getUserHistory( 42)).thenReturn(history);
 
@@ -289,7 +289,7 @@ public class BusinessLogicControllerTest {
 
     @Test
     public void testGetUserHistoryEmptyList() throws Exception {
-        List<FactCheckResultDto> emptyHistory = List.of();
+        List<FactCheckProgressDto> emptyHistory = List.of();
 
         when(service.getUserHistory(42)).thenReturn(emptyHistory);
 

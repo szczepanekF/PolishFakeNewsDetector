@@ -7,11 +7,11 @@ import java.util.List;
 public interface BusinessLogicService {
     EvaluationHistoryDto initiateFactCheck(FactCheckRequestDto request, int userId);
 
-    FactCheckResultDto getEvaluationStatus(long id);
+    FactCheckProgressDto getEvaluationStatus(long id);
 
-    FactCheckResultDto getEvaluationResult(int id);
+    // TODO change below method to return a list AnalyzeResult
+    FactCheckProgressDto getEvaluationResult(int id);
 
-    List<FactCheckResultDto> getUserHistory(int userId);
-    // TODO change this getUserHistory method to this
-//    List<EvaluationHistoryDto> getUserHistory(int userId);
+    // TODO change below method to return a list of EvaluationHistoryDto
+    List<FactCheckProgressDto> getUserHistory(int userId);
 }

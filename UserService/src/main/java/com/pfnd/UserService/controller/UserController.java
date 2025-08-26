@@ -56,7 +56,6 @@ public class UserController {
         AuthenticationResponse authenticationResponse = null;
         try {
             authenticationResponse = authenticationService.registerUser(request);
-            //TODO mail notifications, logging, custom exceptions
 
             Map<String, String> emailParameters = new HashMap<>() {{
                 put("emailAddress", request.getEmail());

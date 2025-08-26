@@ -9,10 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class FactCheckResultDto {
+public class FactCheckProgressDto {
     private String id;
     private String message;
     private int currentStep;
-    private int allSteps;
-    private AnalyzeResult result;
+    private int allSteps; // TODO refactor this, sending a constant in each message exchange is not necessary
+    private AnalyzeResult result; // TODO split this to separate class, leave the progress class alone
+
+    public boolean isFinalStep() {
+        return currentStep == allSteps;
+    }
 }

@@ -1,4 +1,4 @@
-package com.pfnd.BusinessLogicService;
+package com.pfnd.BusinessLogicService.utils;
 
 public class Messages {
 

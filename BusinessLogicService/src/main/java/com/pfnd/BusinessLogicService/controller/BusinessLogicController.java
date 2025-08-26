@@ -63,7 +63,7 @@ public class BusinessLogicController {
         log.info("Retrieving status for evaluation ID: {}", id);
 
         try {
-            FactCheckResultDto status = businessLogicService.getEvaluationStatus(id);
+            FactCheckProgressDto status = businessLogicService.getEvaluationStatus(id);
             return ResponseEntity.ok(new Response<>(status));
         } catch (RuntimeException e) {
             log.error("Error retrieving status for evaluation ID {}: {}", id, e.getMessage());
@@ -91,7 +91,7 @@ public class BusinessLogicController {
         log.info("Retrieving result for evaluation ID: {}", id);
 
         try {
-            FactCheckResultDto result = businessLogicService.getEvaluationResult(id);
+            FactCheckProgressDto result = businessLogicService.getEvaluationResult(id);
             return ResponseEntity.ok(new Response<>(result));
         } catch (RuntimeException e) {
             log.error("Error retrieving result for evaluation ID {}: {}", id, e.getMessage());
@@ -127,7 +127,7 @@ public class BusinessLogicController {
             Claims claims = decoder.decode(token);
             int userId = Integer.parseInt(claims.get("userId").toString());
 
-            List<FactCheckResultDto> history = businessLogicService.getUserHistory(userId);
+            List<FactCheckProgressDto> history = businessLogicService.getUserHistory(userId);
 
             log.info("Successfully retrieved {} history records for user: {}",
                     history.size(), userId);

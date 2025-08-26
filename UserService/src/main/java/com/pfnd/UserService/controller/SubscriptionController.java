@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/app/subscription")
 @RequiredArgsConstructor
 public class SubscriptionController {
-    private final SubscriptionService subscriptionService;  //TODO implement user service responsible for handling edge cases
-
+    private final SubscriptionService subscriptionService;
 
     @PostMapping("/subscribe")
     public ResponseEntity<Response<?>>  subscribe(@RequestBody SubscriptionRequestDto request) {

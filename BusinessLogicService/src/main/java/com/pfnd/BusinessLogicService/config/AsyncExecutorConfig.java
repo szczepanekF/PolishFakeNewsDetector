@@ -14,9 +14,9 @@ public class AsyncExecutorConfig {
     @Bean(name = "factCheckExecutor")
     public Executor factCheckExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);       // Number of threads to keep in pool
-        executor.setMaxPoolSize(20);       // Maximum allowed threads
-        executor.setQueueCapacity(100);    // Queue size before spawning new threads
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("FactCheck-");
         executor.initialize();
         return executor;

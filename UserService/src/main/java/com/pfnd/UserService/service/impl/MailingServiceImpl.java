@@ -21,7 +21,6 @@ import java.util.Map;
 public class MailingServiceImpl implements MailingService {
     @Autowired
     protected JavaMailSender javaMailSender;
-    //    private final static String EMAIL_FROM = "zzjp_password_recovery@gmail.com";
 
     protected static String loadHtmlFile(EmailType emailType) throws IOException {
         String templateName = "";

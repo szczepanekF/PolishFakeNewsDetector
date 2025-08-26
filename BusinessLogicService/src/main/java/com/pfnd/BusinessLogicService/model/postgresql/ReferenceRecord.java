@@ -16,12 +16,10 @@ public class ReferenceRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private int footnoteNumber;
     private Date publicationDate;
     private String source;
     private String link;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analyze_result_id")
     private AnalyzeResultRecord analyzeResult;
