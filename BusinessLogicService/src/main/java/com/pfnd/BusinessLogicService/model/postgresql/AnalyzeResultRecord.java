@@ -22,14 +22,14 @@ public class AnalyzeResultRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "historyId")
+    @OneToOne(optional = false)
+    @JoinColumn(name = "historyId", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_history_record"))
     public EvaluationHistoryRecord historyRecord;
 
     private float finalScore;
     @Enumerated(EnumType.STRING)
     private ClassificationLabel label;
-    @Lob
+
     @Column(columnDefinition = "TEXT")
     private String explanation;
 
@@ -38,4 +38,17 @@ public class AnalyzeResultRecord {
 
     @OneToMany(mappedBy = "analyzeResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReferenceRecord> references = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "AnalyzeResultRecord{" +
+                "id=" + id +
+                ", historyRecordId=" + (historyRecord != null ? historyRecord.getId() : "null") +
+                ", finalScore=" + finalScore +
+                ", label=" + label +
+                ", explanation='" + (explanation != null ? explanation.substring(0, Math.min(explanation.length(), 100)) + "..." : "null") + '\'' +
+                ", resultsCount=" + (results != null ? results.size() : 0) +
+                ", referencesCount=" + (references != null ? references.size() : 0) +
+                '}';
+    }
 }

@@ -166,8 +166,8 @@ public class BusinessLogicControllerTest {
         analyzeResult.setLabel(ClassificationLabel.TRUE);
         analyzeResult.setExplanation("Text is factually accurate based on analysis");
         analyzeResult.setReferences(Arrays.asList(
-                new Reference("Reuters", new Date(), "https://example.com/1"),
-                new Reference("BBC", new Date(),"https://example.com/2")
+                new Reference(32,"Reuters", new Date(), "https://example.com/1"),
+                new Reference(43,"BBC", new Date(),"https://example.com/2")
         ));
         resultDto.setResult(analyzeResult);
 

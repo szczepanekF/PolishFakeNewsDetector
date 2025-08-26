@@ -23,7 +23,6 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -60,6 +59,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
             throw new RuntimeException(Messages.MSG_QUEUE_ERROR, e);
         }
 
+        populateInterimnQueue(request.historyId());
         defineReplyQueueListener(replyQueueName, correlationId, request);
         MessageProperties props = new MessageProperties();
         props.setReplyTo(replyQueueName);
@@ -75,6 +75,15 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
         }
     }
 
+    private void populateInterimnQueue(int historyId) {
+        FactCheckResultDto dto = new FactCheckResultDto();
+        dto.setMessage("Kolejkowanie");
+        dto.setId(String.valueOf(historyId));
+        dto.setCurrentStep(0);
+        dto.setAllSteps(10000);
+        storeInterimResultInRedis(dto, historyId);
+    }
+
     private void defineReplyQueueListener(String replyQueueName, String correlationId, FactCheckCommand request) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         container.setQueueNames(replyQueueName);
@@ -86,7 +95,7 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
                 try {
                     FactCheckResultDto result = objectMapper.readValue(body, FactCheckResultDto.class);
                     if (isFinalStep(result)) {
-                        log.info("Received final step {} {}", result.getCurrentStep(), result.getAllSteps());
+                        log.debug("Received final step {} {}", result.getCurrentStep(), result.getAllSteps());
                         updateHistoryRecord(request, result);
                         deleteInterimResult(request.historyId());
                         tryToDeleteTheQueue(replyQueueName);
@@ -113,10 +122,10 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
                 evaluationHistoryRepository.findById(request.historyId())
                                             .orElseThrow(
                                                     () -> new RuntimeException(Messages.DOES_NOT_EXIST));
-        List<AnalyzeResultRecord> resultList = analyzeResultRepository.findByHistoryRecord_Id(request.historyId());
-        if (!resultList.isEmpty()) {
-            log.error("{}{}", Messages.ENTITY_EXISTS, resultList.getFirst());
-            throw new RuntimeException(Messages.ENTITY_EXISTS + resultList.getFirst());
+        Optional<AnalyzeResultRecord> analyzeResultRecord = analyzeResultRepository.findByHistoryRecord_Id(request.historyId());
+        if (analyzeResultRecord.isPresent()) {
+            log.error("{}{}", Messages.ENTITY_EXISTS, analyzeResultRecord.get());
+            throw new RuntimeException(Messages.ENTITY_EXISTS + analyzeResultRecord.get());
         }
         AnalyzeResult receivedResult = result.getResult();
         List<ReferenceRecord> referenceRecords = receivedResult.getReferences().stream().map(ReferenceRecord::new)
@@ -139,8 +148,12 @@ public class FactCheckRequestHandlerImpl implements FactCheckRequestHandler {
         for (ReferenceRecord ref : referenceRecords) {
             ref.setAnalyzeResult(resultRecord);
         }
+        record.setSteps(result.getAllSteps());
+        record.setStatus(result.getMessage());
         try {
-            analyzeResultRepository.saveAndFlush(resultRecord);
+            analyzeResultRepository.save(resultRecord);
+            evaluationHistoryRepository.save(record);
+            analyzeResultRepository.flush();
         } catch (Exception e) {
             log.error("{}{}", Messages.SAVE_ERROR, resultRecord, e);
             throw new RuntimeException(Messages.SAVE_ERROR + resultRecord);

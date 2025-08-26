@@ -25,7 +25,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class BusinessLogicServiceTest {
 
-    private static final int USER_ID = 1;
     private static final FactCheckRequestDto request = new FactCheckRequestDto("test text");
     private EvaluationHistoryRecord record;
     @Mock
@@ -40,11 +39,35 @@ public class BusinessLogicServiceTest {
     @InjectMocks
     private BusinessLogicServiceImpl businessLogicService;
 
+    private AnalyzeResultRecord analyzeRecord;
+
+    private ReferenceRecord refRecord;
+
+    private ResultRecord resultRecord1;
+
+    private ResultRecord resultRecord2;
     @BeforeEach
     public void init() {
         record = new EvaluationHistoryRecord();
         record.setId(123);
         record.setInputText(request.getText());
+        refRecord = new ReferenceRecord();
+        refRecord.setPublicationDate(new Date());
+        refRecord.setSource("Reuters");
+        refRecord.setLink("https://example.com");
+        resultRecord1 = new ResultRecord();
+        resultRecord1.setKey("credibility");
+        resultRecord1.setValue(new ScoredValue("value1", 0.5F));
+        resultRecord2 = new ResultRecord();
+        resultRecord2.setKey("factuality");
+        resultRecord2.setValue(new ScoredValue("value2", 0.6F));
+        analyzeRecord = new AnalyzeResultRecord();
+        analyzeRecord.setHistoryRecord(record);
+        analyzeRecord.setFinalScore(0.8F);
+        analyzeRecord.setLabel(ClassificationLabel.TRUE);
+        analyzeRecord.setExplanation("Text is accurate");
+        analyzeRecord.setReferences(List.of(refRecord));
+        analyzeRecord.setResults(List.of(resultRecord1, resultRecord2));
     }
 
     @Test
@@ -68,21 +91,17 @@ public class BusinessLogicServiceTest {
     @Test
     void shouldGetEvaluationStatusSuccessfully() {
         when(factCheckRequestHandler.getInterimResult(123L)).thenReturn(Optional.empty());
-
-        EvaluationHistoryRecord record = new EvaluationHistoryRecord();
-        record.setId(123);
-        record.setInputText("test text");
         record.setStatus("COMPLETED");
 
-        when(evaluationHistoryRepository.findById(123)).thenReturn(Optional.of(record));
+        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(Optional.of(analyzeRecord));
 
         FactCheckResultDto result = businessLogicService.getEvaluationStatus(123L);
 
         assertEquals("123", result.getId());
-        assertEquals("test text", result.getMessage());
+        assertEquals(record.getStatus(), result.getMessage());
 
         verify(factCheckRequestHandler, times(1)).getInterimResult(123L);
-        verify(evaluationHistoryRepository, times(1)).findById(123);
+        verify(analyzeResultRepository, times(1)).findByHistoryRecord_Id(123);
     }
 
     @Test
@@ -105,7 +124,7 @@ public class BusinessLogicServiceTest {
     @Test
     void shouldThrowExceptionWhenEvaluationStatusNotFound() {
         when(factCheckRequestHandler.getInterimResult(999L)).thenReturn(Optional.empty());
-        when(evaluationHistoryRepository.findById(999)).thenReturn(Optional.empty());
+        when(analyzeResultRepository.findByHistoryRecord_Id(999)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> businessLogicService.getEvaluationStatus(999L));
@@ -113,13 +132,13 @@ public class BusinessLogicServiceTest {
         assertEquals("Error fetching evaluation status: Evaluation not found for id: 999", exception.getMessage());
 
         verify(factCheckRequestHandler, times(1)).getInterimResult(999L);
-        verify(evaluationHistoryRepository, times(1)).findById(999);
+        verify(analyzeResultRepository, times(1)).findByHistoryRecord_Id(999);
     }
 
     @Test
     void shouldThrowExceptionWhenGetEvaluationStatusFails() {
         when(factCheckRequestHandler.getInterimResult(123L)).thenReturn(Optional.empty());
-        when(evaluationHistoryRepository.findById(123)).thenThrow(new RuntimeException("Database error"));
+        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenThrow(new RuntimeException("Database error"));
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> businessLogicService.getEvaluationStatus(123L));
@@ -127,46 +146,24 @@ public class BusinessLogicServiceTest {
         assertEquals("Error fetching evaluation status: Database error", exception.getMessage());
 
         verify(factCheckRequestHandler, times(1)).getInterimResult(123L);
-        verify(evaluationHistoryRepository, times(1)).findById(123);
+        verify(analyzeResultRepository, times(1)).findByHistoryRecord_Id(123);
     }
 
 
     @Test
     void shouldGetEvaluationResultSuccessfully() {
-        EvaluationHistoryRecord historyRecord = new EvaluationHistoryRecord();
-        historyRecord.setId(123);
-        historyRecord.setInputText("test text");
-        historyRecord.setStatus("COMPLETED");
+        record.setStatus("COMPLETED");
+        record.setSteps(5);
 
-        ReferenceRecord refRecord = new ReferenceRecord();
-        refRecord.setPublicationDate(new Date());
-        refRecord.setSource("Reuters");
-        refRecord.setLink("https://example.com");
-
-        ResultRecord resultRecord1 = new ResultRecord();
-        resultRecord1.setKey("credibility");
-        resultRecord1.setValue(new ScoredValue("value1", 0.5F));
-
-        ResultRecord resultRecord2 = new ResultRecord();
-        resultRecord2.setKey("factuality");
-        resultRecord2.setValue(new ScoredValue("value2", 0.6F));
-
-        AnalyzeResultRecord analyzeRecord = new AnalyzeResultRecord();
-        analyzeRecord.setFinalScore(0.8F);
-        analyzeRecord.setLabel(ClassificationLabel.TRUE);
-        analyzeRecord.setExplanation("Text is accurate");
-        analyzeRecord.setReferences(List.of(refRecord));
-        analyzeRecord.setResults(List.of(resultRecord1, resultRecord2));
-
-        when(evaluationHistoryRepository.findById(123)).thenReturn(Optional.of(historyRecord));
-        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(List.of(analyzeRecord));
+        when(evaluationHistoryRepository.findById(123)).thenReturn(Optional.of(record));
+        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(Optional.of(analyzeRecord));
 
         FactCheckResultDto result = businessLogicService.getEvaluationResult(123);
 
         assertEquals("123", result.getId());
         assertEquals("test text", result.getMessage());
-        assertEquals(5, result.getCurrentStep());
-        assertEquals(5, result.getAllSteps());
+        assertEquals(record.getSteps(), result.getCurrentStep());
+        assertEquals(record.getSteps(), result.getAllSteps());
         assertNotNull(result.getResult());
 
         AnalyzeResult analyzeResult = result.getResult();
@@ -206,7 +203,7 @@ public class BusinessLogicServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> businessLogicService.getEvaluationResult(999));
 
-        assertEquals("Error fetching evaluation result: Evaluation record not found for id: 999", exception.getMessage());
+        assertEquals("Evaluation record not found for id: 999", exception.getMessage());
         verify(evaluationHistoryRepository, times(1)).findById(999);
         verify(analyzeResultRepository, never()).findByHistoryRecord_Id(anyInt());
     }
@@ -215,6 +212,7 @@ public class BusinessLogicServiceTest {
     void shouldThrowExceptionWhenEvaluationNotCompleted() {
         EvaluationHistoryRecord record = new EvaluationHistoryRecord();
         record.setId(123);
+        record.setSteps(-1);
         record.setStatus("IN_PROGRESS");
 
         when(evaluationHistoryRepository.findById(123)).thenReturn(Optional.of(record));
@@ -222,7 +220,7 @@ public class BusinessLogicServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> businessLogicService.getEvaluationResult(123));
 
-        assertEquals("Error fetching evaluation result: Evaluation not completed yet for id: 123", exception.getMessage());
+        assertEquals("Evaluation not completed yet for id: 123", exception.getMessage());
         verify(evaluationHistoryRepository, times(1)).findById(123);
         verify(analyzeResultRepository, never()).findByHistoryRecord_Id(anyInt());
     }
@@ -234,12 +232,12 @@ public class BusinessLogicServiceTest {
         record.setStatus("COMPLETED");
 
         when(evaluationHistoryRepository.findById(123)).thenReturn(Optional.of(record));
-        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(List.of());
+        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> businessLogicService.getEvaluationResult(123));
 
-        assertEquals("Error fetching evaluation result: Analysis result not found for evaluation id: 123", exception.getMessage());
+        assertEquals("Analysis result not found for evaluation id: 123", exception.getMessage());
         verify(evaluationHistoryRepository, times(1)).findById(123);
         verify(analyzeResultRepository, times(1)).findByHistoryRecord_Id(123);
     }
@@ -278,6 +276,7 @@ public class BusinessLogicServiceTest {
         resultRecord2.setValue(new ScoredValue("value2", 0.9F));
 
         AnalyzeResultRecord analyzeRecord1 = new AnalyzeResultRecord();
+        analyzeRecord1.setHistoryRecord(completedRecord);
         analyzeRecord1.setFinalScore(0.9F);
         analyzeRecord1.setLabel(ClassificationLabel.TRUE);
         analyzeRecord1.setExplanation("First analysis complete");
@@ -285,6 +284,7 @@ public class BusinessLogicServiceTest {
         analyzeRecord1.setResults(List.of(resultRecord1, resultRecord2));
 
         AnalyzeResultRecord analyzeRecord2 = new AnalyzeResultRecord();
+        analyzeRecord2.setHistoryRecord(inProgressRecord);
         analyzeRecord2.setFinalScore(0.7F);
         analyzeRecord2.setLabel(ClassificationLabel.FALSE);
         analyzeRecord2.setExplanation("Second analysis complete");
@@ -292,6 +292,7 @@ public class BusinessLogicServiceTest {
         analyzeRecord2.setResults(null);
 
         AnalyzeResultRecord analyzeRecord3 = new AnalyzeResultRecord();
+        analyzeRecord3.setHistoryRecord(requestedRecord);
         analyzeRecord3.setFinalScore(0.5F);
         analyzeRecord3.setLabel(ClassificationLabel.MOSTLY_TRUE);
         analyzeRecord3.setExplanation("Third analysis complete");
@@ -299,15 +300,15 @@ public class BusinessLogicServiceTest {
         analyzeRecord3.setResults(List.of(resultRecord1));
 
         when(evaluationHistoryRepository.findByUserIdOrderByCreatedAtDesc(42)).thenReturn(records);
-        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(List.of(analyzeRecord1));
-        when(analyzeResultRepository.findByHistoryRecord_Id(124)).thenReturn(List.of(analyzeRecord2));
-        when(analyzeResultRepository.findByHistoryRecord_Id(125)).thenReturn(List.of(analyzeRecord3));
+        when(analyzeResultRepository.findByHistoryRecord_Id(123)).thenReturn(Optional.of(analyzeRecord1));
+        when(analyzeResultRepository.findByHistoryRecord_Id(124)).thenReturn(Optional.of(analyzeRecord2));
+        when(analyzeResultRepository.findByHistoryRecord_Id(125)).thenReturn(Optional.of(analyzeRecord3));
 
         List<FactCheckResultDto> result = businessLogicService.getUserHistory(42);
 
         assertEquals(3, result.size());
 
-        FactCheckResultDto completed = result.get(0);
+        FactCheckResultDto completed = result.getFirst();
         assertEquals("123", completed.getId());
         assertEquals("completed text", completed.getMessage());
         assertEquals(5, completed.getCurrentStep());

@@ -77,7 +77,7 @@ public class FactCheckRequestListenerImpl {
             "NLP", "Looking for reference sources", "Preparing response", "Success");
 
     private FactCheckResultDto prepareMockResult(String inputText, String correlationId, int currentStep, int allSteps) {
-        Reference ref = new Reference("test.source", new Date(), "url");
+        Reference ref = new Reference(55,"test.source", new Date(), "url");
         ScoredValue sample = new ScoredValue("sentiment", 0.5f);
         AnalyzeResult analyzeRes =
                 new AnalyzeResult(inputText, 0.9f, ClassificationLabel.UNCLASSIFIED, "explanation",

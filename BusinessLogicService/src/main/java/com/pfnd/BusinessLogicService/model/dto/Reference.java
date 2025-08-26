@@ -11,6 +11,7 @@ import java.util.Date;
 @Data
 public class Reference {
 
+    private int footnoteNumber;
     private String source;
     private Date publicationDate;
     private String link;

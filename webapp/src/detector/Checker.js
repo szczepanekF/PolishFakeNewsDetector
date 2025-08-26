@@ -4,10 +4,12 @@ import "../css/checker.css";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {toast} from "react-toastify";
+import {formatDateToYMDHis} from "../helper";
 
 export default function Checker({userToken, setGuest}){
     const [checkForm, setCheckForm] = useState({text: ""});
     const [progress, setProgress] = useState({currentStep: 0, allSteps: 0});
+    const [progressMessage, setProgressMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [evaluationId, setEvaluationId] = useState(null);
@@ -27,6 +29,7 @@ export default function Checker({userToken, setGuest}){
         e.preventDefault()
         if(checkForm.text.trim().length > 0){
         try {
+            setResult(null);
             const response = await axios.post(
                 `${process.env.REACT_APP_LOGIC_API}/app/evaluate`,
                 {
@@ -69,29 +72,25 @@ export default function Checker({userToken, setGuest}){
 
         const interval = setInterval(async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/status/${evaluationId}`,
+                const res = await axios.get(
+                    `${process.env.REACT_APP_LOGIC_API}/app/status/${evaluationId}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${userToken}`,
-                            'Content-Type': 'application/json'
                         }
-                    });
+                    }
+                );
+            
                 const currentStep = res.data.contained_object.current_step;
                 const allSteps = res.data.contained_object.all_steps;
                 setProgress({ currentStep, allSteps });
+                const mess = res.data.contained_object.message;
+                setProgressMessage(mess);
 
                 if (currentStep === allSteps) {
                     clearInterval(interval);
-
-                    const resultRes = await axios.get(`${process.env.REACT_APP_LOGIC_API}/app/result/${evaluationId}`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${userToken}`,
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                    setResult(resultRes.data.contained_object);
                     setIsLoading(false);
+                    setResult(res.data.contained_object.result)
                 }
             } catch (err) {
                 console.error(err);
@@ -99,10 +98,10 @@ export default function Checker({userToken, setGuest}){
                 clearInterval(interval);
                 setIsLoading(false);
             }
-        }, 3000); // every 3s
+        }, 300); // every .3s
 
         return () => clearInterval(interval);
-    }, [evaluationId]);
+    }, [evaluationId, userToken]);
 
     setGuest(false);
 
@@ -146,32 +145,33 @@ export default function Checker({userToken, setGuest}){
                     </form>
                     <div className="answer-container">
                         {isLoading ?
-                            <div className="load-bar"><div className={"progress"} style={{width: `${(progress.currentStep/progress.allSteps)*100}%`}}></div></div>
+                            <div className={"load-container"}>
+                                <div className="load-bar"><div className={"progress"} style={{width: `${(progress.currentStep/progress.allSteps)*100}%`}}></div></div>
+                                <div className={"label"}>{progressMessage}</div>
+                            </div>
                             : null}
                         {result ?
                             <div style={{display: "contents"}}>
                         <div className={"answer-row"}><h2 className={"header"}>Wynik</h2> </div>
-                        <div className={"answer-row"}><div className={"label"}>Werdykt:</div> <div className={"value"}> {result.result.label}</div></div>
-                        <div className={"answer-row"}><div className={"label"}>Ocena:</div>
-                            <div className={"value"}>{result.result.finalScore}</div></div>
+                        <div className={"answer-row"}><div className={"label"}>Werdykt:</div> <div className={"value"}> {result.label}</div></div>
+                        {/*<div className={"answer-row"}><div className={"label"}>Ocena:</div>*/}
+                        {/*    <div className={"value"}>{result.finalScore}</div></div>*/}
                             <div className={"answer-row"}><div className={"label"}>Wyjaśnienie:</div>
                         </div>
-                            <div className={"answer-row"}><div className={"value"}>{result.result.explanation}</div></div>
+                            <div className={"answer-row"}><div className={"value"}>{result.explanation}</div></div>
 
-                        {/*    {result.result.references?.length > 0 && (*/}
-                        {/*    <div style={{display: "contents"}}>*/}
-                        {/*        <div className={"answer-row"}><h4 className={"header"}>References:</h4></div>*/}
-                        {/*        <ul className="list-disc list-inside">*/}
-                        {/*            {result.result.references.map((ref, index) => (*/}
-                        {/*                <li key={index}>*/}
-                        {/*                    <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">*/}
-                        {/*                        {ref.url}*/}
-                        {/*                    </a>*/}
-                        {/*                </li>*/}
-                        {/*            ))}*/}
-                        {/*        </ul>*/}
-                        {/*    </div>*/}
-                        {/*)}*/}
+                        {result.references?.length > 0 && (
+                            <div style={{display: "contents"}}>
+                                <div className={"answer-row"}><h4 className={"header"}>Odniesienia:</h4></div>
+                                <div className="answer-row references">
+                                    {result.references.map((ref, index) => (
+                                            <a href={ref.link} className="reference-link" key={index} target="_blank" rel="noreferrer">
+                                                <div>[{ref.footnote_number}]</div><div className={"date"}>{formatDateToYMDHis(ref.publication_date)}</div><div className={"label"}>{ref.link}</div>
+                                            </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                             </div>
                             : null }
                     </div>

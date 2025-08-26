@@ -17,6 +17,7 @@ public class ReferenceRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int footnoteNumber;
     private Date publicationDate;
     private String source;
     private String link;
@@ -26,6 +27,7 @@ public class ReferenceRecord {
     private AnalyzeResultRecord analyzeResult;
 
     public ReferenceRecord(Reference ref) {
+        footnoteNumber = ref.getFootnoteNumber();
         publicationDate = ref.getPublicationDate();
         source = ref.getSource();
         link = ref.getLink();

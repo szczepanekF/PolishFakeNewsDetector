@@ -12,4 +12,6 @@ public interface BusinessLogicService {
     FactCheckResultDto getEvaluationResult(int id);
 
     List<FactCheckResultDto> getUserHistory(int userId);
+    // TODO change this getUserHistory method to this
+//    List<EvaluationHistoryDto> getUserHistory(int userId);
 }

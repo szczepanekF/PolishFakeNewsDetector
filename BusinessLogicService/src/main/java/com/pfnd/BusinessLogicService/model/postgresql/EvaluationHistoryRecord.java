@@ -19,8 +19,9 @@ public class EvaluationHistoryRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int userId;
+    @Column(columnDefinition = "TEXT")
     private String inputText;
     private Date createdAt;
-
     private String status;
+    private int steps;
 }

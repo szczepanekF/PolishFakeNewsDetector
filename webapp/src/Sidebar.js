@@ -65,7 +65,7 @@ export default function Sidebar() {
                 <a className={"item"} href={"/check"}>
                     <div className={"icon"}><Icons.FiCheckCircle size={"24px"}
                                                                 color={"currentColor"}></Icons.FiCheckCircle></div>
-                    <div className={"label"}>Wyloguj się</div>
+                    <div className={"label"}>Sprawdź tekst</div>
                 </a>
             </div>
         </div>

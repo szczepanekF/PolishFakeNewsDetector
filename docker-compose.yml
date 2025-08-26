@@ -40,16 +40,15 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - evaluation_sources_db_data:/data/db
+      - evaluation_sources_db_data:/var/lib/postgresql/data
 
   nginx:
     image: nginx:stable-alpine
     container_name: pfnd-nginx
     ports:
-      - "80:80"
+      - "8000:8000"
     volumes:
       - ./nginx/conf/default.conf:/etc/nginx/nginx.conf:ro
-      - webapp_data:/usr/share/nginx/html
       - nginx_logs_data:/var/log/nginx
     depends_on:
       - webapp
@@ -58,25 +57,22 @@ services:
 
   webapp:
     container_name: pfnd-webapp
-    expose:
-      - "80"
+    ports:
+      - "80:3000"
     build:
       context: ./webapp
       dockerfile: Dockerfile
       args:
-        REACT_APP_AUTH_API: http://localhost/api/auth
-        REACT_APP_LOGIC_API: http://localhost/api/business-logic
-    volumes:
-      - webapp_data:/usr/share/nginx/html # Output build files to shared volume
+        REACT_APP_AUTH_API: http://localhost:8000/api/auth
+        REACT_APP_LOGIC_API: http://localhost:8000/api/business-logic
     depends_on:
       - business-logic
       - auth
+  
   auth:
     build:
       context: ./UserService
       dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -110,6 +106,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${HISTORY_DB_NAME}
+
     ports:
       - "5433:5432"
     volumes:

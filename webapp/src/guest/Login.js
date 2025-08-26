@@ -22,13 +22,11 @@ export default function Login({setGuest, setUserToken}) {
 
     console.log(process.env);
     const handleChange = (e) => {
-        // if (e.target.name === "password") {
-        //     setIsPasswordValid(validatePassword(e.target.value));
-        //     console.log(isPasswordValid);
-        // }
+        if (e.target.name === "password") {
+            setIsPasswordValid(e.target.value.length>0);
+        }
         if (e.target.name === "email") {
             setIsEmailValid(validateEmail(e.target.value));
-            console.log(isEmailValid);
         }
         setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
     };
@@ -252,7 +250,7 @@ export default function Login({setGuest, setUserToken}) {
                                         ? ""
                                         : (loginForm.password ==='' ?
                                             "Hasło jest wymagane"
-                                            : "Nieprawidłowe hasło, zasady: 8-20 znaków, jedna wielka litera, jedna mała litera, dodatkowy znak i liczba")}
+                                            : "")}
                                 </p>
                             </div>
                             <div

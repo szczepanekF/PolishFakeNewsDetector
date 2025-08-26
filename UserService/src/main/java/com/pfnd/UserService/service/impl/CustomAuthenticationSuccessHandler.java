@@ -42,8 +42,7 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                   });
         String token = authenticationService.loginWithGoogle(user);
         //TODO redirect url
-        String targetUrl = "http://localhost/login?token=" + token;
-        System.out.println(token);
+        String targetUrl = "http://localhost:80/login?token=" + token;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

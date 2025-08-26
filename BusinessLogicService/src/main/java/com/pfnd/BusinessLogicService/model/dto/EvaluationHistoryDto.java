@@ -1,8 +1,6 @@
 package com.pfnd.BusinessLogicService.model.dto;
 
 import com.pfnd.BusinessLogicService.model.postgresql.EvaluationHistoryRecord;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Lob;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,13 +13,15 @@ public class EvaluationHistoryDto {
     private int userId;
     private String inputText;
     private Date createdAt;
-
     private String status;
+    private int steps;
+
     public EvaluationHistoryDto(EvaluationHistoryRecord record) {
         this.setId(record.getId());
         this.setUserId(record.getUserId());
         this.setInputText(record.getInputText());
         this.setStatus(record.getStatus());
         this.setCreatedAt(record.getCreatedAt());
+        this.setSteps(record.getSteps());
     }
 }
